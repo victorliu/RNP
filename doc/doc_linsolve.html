@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html  PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+<title>RNP Documentation -- LinearSolve</title>
+<style type="text/css">@import url(rnp.css);</style>
+</head>
+<body>
+
+
+<h1>LinearSolve</h1>
+
+<p>The dense linear solvers are all located in namespace <code>RNP</code>.</p>
+
+<h2>Contents</h2>
+
+<ul>
+<li><a href="#RNP_LinearSolve">LinearSolve</a></li>
+<li>LinearSolve &ndash; TODO: Performs a linear solve without pivot space</li>
+<li>LinearSolveNice &ndash; TODO: Performs a linear solve nondestructively, without pivot space</li>
+<li>Invert &ndash; TODO: Inverts a matrix</li>
+<li>InvertNice &ndash; TODO: In-place inversion</li>
+</ul>
+
+
+<hr />
+
+<h2>LinearSolve<a name="RNP_LinearSolve" /></h2>
+
+<p>Solves the linear system <code>op(A) * X = B</code> for dense, square <code>op(A)</code>, where <code>op</code> is determined by the template parameter <code>trans</code>.
+<code>B</code> is a matrix of right hand sides.</p>
+
+<p>Internally, an LU decomposition with pivoting is used.
+Note that specialized versions of this function may be preferrable for better performance on vectors, or for particular conveniences.</p>
+
+<p>This function is doubly templated and is, in fact, implemented as the constructor of a <code>struct</code>.
+The outer template parameter corresponds to the original LAPACK parameter <code>trans</code>, and must be specified.
+Here is an example of how the function should be called:</p>
+
+<pre><code>RNP::LinearSolve&lt;'N'&gt;(n, 1, a, lda, b, n);
+</code></pre>
+
+<p>This function corresponds to LAPACK functions <code>zgesv</code>, <code>dgesv</code>, <code>cgesv</code>, and <code>sgesv</code>.</p>
+
+<h3>Prototype</h3>
+
+<pre><code>template &lt;char trans&gt;
+struct LinearSolve{
+    template &lt;class T&gt;
+    LinearSolve(size_t n, size_t nRHS,
+                T *a, size_t lda, T *b, size_t ldb,
+                int *info = NULL, size_t *pivots = NULL);
+};
+</code></pre>
+
+<h3>Arguments:</h3>
+
+<dl>
+<dt>trans</dt>
+<dd>Specifies the transpose operation used for <code>A</code>.
+This is a template parameter which must be explicitly specified.
+
+<ul>
+<li>If <code>trans=N</code>, <code>op(A) = A</code>.</li>
+<li>If <code>trans=T</code>, <code>op(A) = A'</code> (transpose of A)</li>
+<li>If <code>trans=C</code>, <code>op(A) = conj(A')</code> (conjugate transpose of A)</li>
+</ul>
+
+
+<p>Exact checking may is not performed for this parameter, but it should always be specified as one of these three uppercase characters.</p></dd>
+<dt>n</dt>
+<dd>The number of rows/columns of matrix <code>A</code>.</dd>
+<dt>nRHS</dt>
+<dd>The number of right hand side vectors, or number of columns of <code>B</code>.</dd>
+<dt>a</dt>
+<dd>Pointer to the first element of matrix <code>A</code>.</dd>
+<dt>lda</dt>
+<dd>Leading dimension of matrix <code>A</code> (typically the number of rows of <code>A</code> unless <code>A</code> is a submatrix of a larger matrix).</dd>
+<dt>b</dt>
+<dd>Pointer to the first element of matrix <code>B</code>.</dd>
+<dt>ldb</dt>
+<dd>Leading dimension of matrix <code>B</code>.</dd>
+<dt>info</dt>
+<dd>If matrix <code>A</code> is singular, the position of the first zero pivot encountered in the LU decomposition is return in <code>info</code> if it is non-<code>NULL</code>. The position is 1-based.</dd>
+<dt>pivots</dt>
+<dd>If non-<code>NULL</code>, must be of length <code>n</code>. This is used to store pivoting information.
+If it is ignored (pass in <code>NULL</code>), then space is automatically allocated and freed.</dd>
+</dl>
+</body>
+</html>

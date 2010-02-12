@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html  PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+<title>RNP Documentation -- Compilation and file dependencies</title>
+<style type="text/css">@import url(rnp.css);</style>
+</head>
+<body>
+
+
+<h1>Compilation and file dependencies</h1>
+
+<p>Compilation is straightforward: copy the files you need into your project and compile them, that&rsquo;s all there is to it.
+The number of files needed is typically minimal, and there are no additional dependencies.</p>
+
+<h2>Dependencies</h2>
+
+<p>Usage of any function from one of the modules may entail including additional files into your project.
+The dependencies are listed below.</p>
+
+<h3>Header only</h3>
+
+<ul>
+<li>IO</li>
+<li>Random</li>
+<li>TBLAS</li>
+<li>Sparse</li>
+<li>LinearSolve &ndash; Also requires TBLAS.h and TLASupport.h</li>
+</ul>
+
+
+<h3>Sources required</h3>
+
+<p>Obviously, the corresponding header files are needed, so those will not be listed.</p>
+
+<ul>
+<li>Eigensystems &ndash; Needs Eigensystems.cpp, TLASupport.h, TBLAS.h</li>
+<li>Generalized Eigensystems &ndash; Needs GeneralizedEigensystems.cpp, TLASupport.h, TBLAS.h</li>
+<li>Iterative Linear Solvers &ndash; Needs TLASupport and TBLAS.h, as well as the corresponding cpp file from the src/ directory corresponding to the routine name.</li>
+<li>Iterative Generalized Eigensystems &ndash; Needs IterativeLinearSolvers.h, Random.h, TLASupport, TBLAS.h, GeneralizedEigensystems.h, GeneralizedEigensystems.cpp, and the corresponding cpp files from the src/ directory corresponding to the routine names used (JDQZ and whatever linear solver).</li>
+</ul>
+
+</body>
+</html>

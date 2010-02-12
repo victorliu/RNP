@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html  PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+<title>RNP -- About</title>
+<style type="text/css">@import url(rnp.css);</style>
+</head>
+<body>
+
+
+<h1>Rapid Numerical Prototyping</h1>
+
+<p>Ever wanted to try out some numerical algorithm, but dread having to link your code with some archaic Fortran libraries?
+The Rapid Numerical Prototyping library aims to solve this problem by making the easiest-to-use numerical C++ library.
+RNP implements algorithms in a straightforward way when possible, and always chooses the most generic or simplest implementation.
+All implementation/source files are self-contained, so a minimal number of files ever need to be included.</p>
+
+<h2>Design rationale</h2>
+
+<p>Here I will explain the reasons for the API/interfaces for various components.</p>
+
+<h3>Dense matrix operations and BLAS implementation</h3>
+
+<ul>
+<li>Operator overloading is not used since the C++ operator set is insufficiently rich to express a large enough subset of matrix operations.
+For example, multiplication by (conjugate) transpose cannot be directly expressed using overloadable operators.
+Attempts to get around this shortcoming with templates, matrix expression objects, etc. end up producing hard-to-understand template code that is equally hard to debug.</li>
+<li>All the character arguments (<code>job</code> or <code>uplo</code>) are template parameters since I have never seen code that needed to choose them at runtime.</li>
+<li>Only operations on general (no symmetry) matrices are supported for simplicity.</li>
+<li>BLAS implementations provide no argument checking, perform no special casing, and are usually about 3-5 lines of code to try to offset some of the performance lost to using unblocked algorithms.</li>
+<li>Matrix formats match Fortran interface expectations so that prototypes built with RNP are easily portable to optimized Fortran libraries.</li>
+</ul>
+
+
+<h3>Dense eigensolvers</h3>
+
+<ul>
+<li>The dense eigensystem solver (equivalent of <code>zgeev</code>) implements a Jacobi-like algorithm, which is amazing simple.
+The standard LAPACK implementation performs QR iteration, but that code contains many oddities (such as manually unrolled recursion).
+The Jacobi-like algorithm will probably produce more accurate eigenvalues/vectors, at the cost of being somewhat slower for large problems.</li>
+<li>The dense generalized eigensystem solver (equivalent of <code>zggev</code> or <code>zgevv</code>) is a direct translation of the LAPACK QZ iteration implementation.
+The code has been converted using a modified F2C and hand re-written to remove all goto&rsquo;s and operate out of a single source file.</li>
+</ul>
+
+
+<h3>Linear solvers</h3>
+
+<ul>
+<li>The dense linear solver is a direct LU decomposition with pivoting and triangular solve, like in LAPACK.</li>
+<li>Several (sparse) iterative linear solvers are implemented: IDR(s), BiCGSTAB(l), and GMRES. These are the current state-of-the-art non-symmetric iterative linear solvers.</li>
+<li>There are no plans to implement any direct solvers for large sparse systems due to the overwhelmin complexity of those algorithms.</li>
+</ul>
+
+
+<h3>Sparse eigensolvers</h3>
+
+<ul>
+<li>There is only a single eigensolver implemented: the JDQZ algorithm for generalized non-symmetric eigensystems.
+No non-generalized eigensolver is available due to the desire to support arbitrary spectral selection (you can choose eigenvalues using a user-defined eigenvalue sorter); use the generalized algorithm with the B matrix equal to the identity if needed.
+The sparse eigensolver takes function pointers to perform matrix-vector multiplies, linear solves, and preconditioning.
+All of these operations can be performed with other routines in RNP, and adapters are provided for convenience.</li>
+</ul>
+
+
+<h3>Dense SVD</h3>
+
+<ul>
+<li>I plan to port the LAPACK Jacobi SVD algorithm for this purpose.</li>
+</ul>
+
+</body>
+</html>

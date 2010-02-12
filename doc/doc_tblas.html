@@ -1,0 +1,943 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html  PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+<title>RNP Documentation -- TBLAS</title>
+<style type="text/css">@import url(rnp.css);</style>
+</head>
+<body>
+
+
+<h1>RNP::TBLAS</h1>
+
+<p>TBLAS is a templated BLAS, with some design modifications.
+All functions are in namespace <code>RNP::TBLAS</code>.
+Optionally, if the RNP Random module is used, define <code>RNP_TBLAS_USE_RANDOM</code> to enable functions for filling in vectors or matrices with random values.</p>
+
+<h2>Contents</h2>
+
+<h3>BLAS Level 1 functions</h3>
+
+<ul>
+<li><a href="#TBLAS_Swap">Swap</a></li>
+<li><a href="#TBLAS_Scale">Scale</a></li>
+<li><a href="#TBLAS_Copy">Copy</a></li>
+<li><a href="#TBLAS_Axpy">Axpy</a></li>
+<li><a href="#TBLAS_Dot">Dot</a></li>
+<li><a href="#TBLAS_Norm2">Norm2</a></li>
+<li><a href="#TBLAS_Asum">Asum</a></li>
+<li><a href="#TBLAS_MaximumIndex">MaximumIndex</a></li>
+</ul>
+
+
+<h3>BLAS Level 2 functions</h3>
+
+<ul>
+<li><a href="#TBLAS_MultMV">MultMV</a></li>
+<li><a href="#TBLAS_MultTrV">MultTrV</a></li>
+<li><a href="#TBLAS_SolveTrV">SolveTrV</a></li>
+<li><a href="#TBLAS_Rank1Update">Rank1Update</a></li>
+<li><a href="#TBLAS_ConjugateRank1Update">ConjugateRank1Update</a></li>
+</ul>
+
+
+<h3>BLAS Level 3 functions</h3>
+
+<ul>
+<li><a href="#TBLAS_MultMM">MultMM</a></li>
+<li><a href="#TBLAS_SolveTrM">SolveTrM</a></li>
+</ul>
+
+
+<h3>LAPACK utility functions</h3>
+
+<ul>
+<li><a href="#TBLAS_Conjugate">Conjugate</a></li>
+<li><a href="#TBLAS_CopyMatrix">CopyMatrix</a></li>
+<li><a href="#TBLAS_SetMatrix">SetMatrix</a></li>
+<li><a href="#TBLAS_RandomVector">RandomVector</a></li>
+</ul>
+
+
+<hr />
+
+<h2>Swap<a name="TBLAS_Swap" /></h2>
+
+<p>Swaps two vectors (<code>x &lt;--&gt; y</code>).</p>
+
+<p>This function corresponds to BLAS functions <code>zswap</code>, <code>dswap</code>, <code>cswap</code>, and <code>sswap</code>.</p>
+
+<h3>Prototype</h3>
+
+<pre><code>template &lt;class T&gt;
+void Swap(size_t n, T *x, size_t incx, T *y, size_t incy);
+</code></pre>
+
+<h3>Arguments:</h3>
+
+<dl>
+<dt>n</dt>
+<dd>Length of the vectors.</dd>
+<dt>x</dt>
+<dd>Pointer to the first element of vector <code>x</code>.</dd>
+<dt>incx</dt>
+<dd>Increment (stride) of vector <code>x</code>.</dd>
+<dt>y</dt>
+<dd>Pointer to the first element of vector <code>y</code>.</dd>
+<dt>incy</dt>
+<dd>Increment (stride) of vector <code>y</code>.</dd>
+</dl>
+
+<hr />
+
+<h2>Scale<a name="TBLAS_Scale" /></h2>
+
+<p>Scales a vector <code>x</code> by <code>alpha</code> (<code>x &lt;-- alpha * x</code>).</p>
+
+<p>This function corresponds to BLAS functions <code>zscal</code>, <code>dscal</code>, <code>cscal</code>, and <code>sscal</code>.</p>
+
+<h3>Prototype</h3>
+
+<pre><code>template &lt;class TA, class T&gt;
+void Scale(size_t n, const TA &amp;alpha, T *x, size_t incx);
+</code></pre>
+
+<h3>Arguments:</h3>
+
+<dl>
+<dt>n</dt>
+<dd>Length of the vector.</dd>
+<dt>alpha</dt>
+<dd>The scale factor.</dd>
+<dt>x</dt>
+<dd>Pointer to the first element of vector <code>x</code>.</dd>
+<dt>incx</dt>
+<dd>Increment (stride) of vector <code>x</code>.</dd>
+</dl>
+
+<hr />
+
+<h2>Copy<a name="TBLAS_Copy" /></h2>
+
+<p>Copies one vector into another (<code>dst &lt;-- src</code>).</p>
+
+<p>This function corresponds to BLAS functions <code>zcopy</code>, <code>dcopy</code>, <code>ccopy</code>, and <code>scopy</code>.</p>
+
+<h3>Prototype</h3>
+
+<pre><code>template &lt;class T&gt;
+void Copy(size_t n, const T *src, size_t incsrc, T *dst, size_t incdst);
+</code></pre>
+
+<h3>Arguments:</h3>
+
+<dl>
+<dt>n</dt>
+<dd>Length of the vectors.</dd>
+<dt>src</dt>
+<dd>Pointer to the first element of the source vector.</dd>
+<dt>incsrc</dt>
+<dd>Increment (stride) of source vector.</dd>
+<dt>dst</dt>
+<dd>Pointer to the first element of the destination vector.</dd>
+<dt>incdst</dt>
+<dd>Increment (stride) of destination vector.</dd>
+</dl>
+
+<hr />
+
+<h2>Axpy<a name="TBLAS_Axpy" /></h2>
+
+<p>Performs the scaled addition of one vector to another (<code>y &lt;-- alpha * x + y</code>).</p>
+
+<p>This function corresponds to BLAS functions <code>zaxpy</code>, <code>daxpy</code>, <code>caxpy</code>, and <code>saxpy</code>.</p>
+
+<h3>Prototype</h3>
+
+<pre><code>template &lt;class S, class T&gt;
+void Axpy(size_t n, const S &amp;alpha, const T *x, size_t incx, T *y, size_t incy);
+</code></pre>
+
+<h3>Arguments:</h3>
+
+<dl>
+<dt>n</dt>
+<dd>Length of the vectors.</dd>
+<dt>alpha</dt>
+<dd>The scale factor that is applied to source vector <code>x</code>.</dd>
+<dt>x</dt>
+<dd>Pointer to the first element of the source vector <code>x</code>.</dd>
+<dt>incx</dt>
+<dd>Increment (stride) of source vector <code>x</code>.</dd>
+<dt>y</dt>
+<dd>Pointer to the first element of the destination vector <code>y</code>.</dd>
+<dt>incy</dt>
+<dd>Increment (stride) of destination vector <code>y</code>.</dd>
+</dl>
+
+<hr />
+
+<h2>Dot<a name="TBLAS_Dot" /></h2>
+
+<p>Returns the dot product (scalar product) of two vectors (<code>x' * y</code>).</p>
+
+<p>This function corresponds to BLAS functions <code>zdot</code>, <code>ddot</code>, <code>cdot</code>, and <code>sdot</code>.</p>
+
+<h3>Prototype</h3>
+
+<pre><code>template &lt;class T&gt;
+T Dot(size_t n, const T *x, size_t incx, T *y, size_t incy);
+</code></pre>
+
+<h3>Arguments:</h3>
+
+<dl>
+<dt>n</dt>
+<dd>Length of the vectors.</dd>
+<dt>x</dt>
+<dd>Pointer to the first element of the vector <code>x</code>.</dd>
+<dt>incx</dt>
+<dd>Increment (stride) of vector <code>x</code>.</dd>
+<dt>y</dt>
+<dd>Pointer to the first element of the vector <code>y</code>.</dd>
+<dt>incy</dt>
+<dd>Increment (stride) of vector <code>y</code>.</dd>
+</dl>
+
+<hr />
+
+<h2>ConjugateDot<a name="TBLAS_ConjugateDot" /></h2>
+
+<p>Returns the Hermitian dot product (scalar product) of two vectors (<code>x^H * y</code>).</p>
+
+<p>This function corresponds to BLAS functions <code>zdotc</code> and <code>cdotc</code>.</p>
+
+<h3>Prototype</h3>
+
+<pre><code>template &lt;class T&gt;
+T ConjugateDot(size_t n, const T *x, size_t incx, T *y, size_t incy);
+</code></pre>
+
+<h3>Arguments:</h3>
+
+<dl>
+<dt>n</dt>
+<dd>Length of the vectors.</dd>
+<dt>x</dt>
+<dd>Pointer to the first element of the vector <code>x</code>. This is the vector that is conjugated.</dd>
+<dt>incx</dt>
+<dd>Increment (stride) of vector <code>x</code>.</dd>
+<dt>y</dt>
+<dd>Pointer to the first element of the vector <code>y</code>.</dd>
+<dt>incy</dt>
+<dd>Increment (stride) of vector <code>y</code>.</dd>
+</dl>
+
+<hr />
+
+<h2>Norm2<a name="TBLAS_Norm2" /></h2>
+
+<p>Returns the Euclidean norm (2-norm) of a vector (<code>sqrt(x^H * x)</code>).
+The return type is the corresponding real-number type of template type <code>T</code> (i.e. if <code>T=double</code> then <code>real_type=double</code>, and if <code>T=std::complex&lt;double&gt;</code> then <code>real_type=double</code>).</p>
+
+<p>This function corresponds to BLAS functions <code>dznrm2</code>, <code>dnrm2</code>, <code>scnrm2</code>, and <code>snrm2</code>.</p>
+
+<h3>Prototype</h3>
+
+<pre><code>template &lt;class T&gt;
+real_type Norm2(size_t n, const T *x, size_t incx);
+</code></pre>
+
+<h3>Arguments:</h3>
+
+<dl>
+<dt>n</dt>
+<dd>Length of the vector.</dd>
+<dt>x</dt>
+<dd>Pointer to the first element of the vector.</dd>
+<dt>incx</dt>
+<dd>Increment (stride) of the vector.</dd>
+</dl>
+
+<hr />
+
+<h2>Asum<a name="TBLAS_Asum" /></h2>
+
+<p>Returns the sum of magnitudes of a vector (kind of like a 1-norm).
+For complex numbers, the magnitude is taken to be the sum of the absolute values of the real and imaginary parts (the 1-norm of its vector representation in the complex plane). This is meant to be a cheap norm-like quantity.
+The return type is the corresponding real-number type of template type <code>T</code> (i.e. if <code>T=double</code> then <code>real_type=double</code>, and if <code>T=std::complex&lt;double&gt;</code> then <code>real_type=double</code>).</p>
+
+<p>This function corresponds to BLAS functions <code>dzasum</code>, <code>dasum</code>, <code>scasum</code>, and <code>sasum</code>.</p>
+
+<h3>Prototype</h3>
+
+<pre><code>template &lt;class T&gt;
+typename _RealOrComplexChooser&lt;T&gt;::real_type Asum(size_t n, const T *x, size_t incx);
+</code></pre>
+
+<h3>Arguments:</h3>
+
+<dl>
+<dt>n</dt>
+<dd>Length of the vector.</dd>
+<dt>x</dt>
+<dd>Pointer to the first element of the vector.</dd>
+<dt>incx</dt>
+<dd>Increment (stride) of the vector.</dd>
+</dl>
+
+<hr />
+
+<h2>MaximumIndex<a name="TBLAS_MaximumIndex" /></h2>
+
+<p>Returns the (0-based) index of the element of a vector with the largest magnitude.
+For complex numbers, the magnitude is taken to be the sum of the absolute values of the real and imaginary parts (the 1-norm of its vector representation in the complex plane).</p>
+
+<p>This function corresponds to BLAS functions <code>izamax</code>, <code>idamax</code>, <code>icamax</code>, and <code>isamax</code>.</p>
+
+<h3>Prototype</h3>
+
+<pre><code>template &lt;class T&gt;
+size_t MaximumIndex(size_t n, const T *x, size_t incx);
+</code></pre>
+
+<h3>Arguments:</h3>
+
+<dl>
+<dt>n</dt>
+<dd>Length of the vector.</dd>
+<dt>x</dt>
+<dd>Pointer to the first element of the vector.</dd>
+<dt>incx</dt>
+<dd>Increment (stride) of the vector.</dd>
+</dl>
+
+<hr />
+
+<h2>MultMV<a name="TBLAS_MultMV" /></h2>
+
+<p>Performs a matrix-vector multiply (<code>y &lt;-- alpha * op(A) * x + beta * y</code>, where <code>op</code> is specified by template parameter <code>trans</code>).
+No index or dimension checking is performed.</p>
+
+<p>This function is doubly templated and is, in fact, implemented as the constructor of a <code>struct</code>.
+The outer template parameter corresponds to the classical <code>BLAS</code> parameter <code>trans</code> and must be specified.
+Here is an example of how the function should be called:</p>
+
+<pre><code>RNP::TBLAS::MultMV&lt;'N'&gt;(m, n, alpha, a, lda, x, incx, beta, y, incy);
+</code></pre>
+
+<p>This function corresponds to BLAS functions <code>zgemv</code>, <code>dgemv</code>, <code>cgemv</code>, and <code>sgemv</code>.</p>
+
+<h3>Prototype</h3>
+
+<pre><code>template &lt;char trans&gt;
+struct MultMV{
+    template &lt;class A, class B, class T&gt;
+    MultMV(size_t m, size_t n, const A &amp;alpha, const T *a, size_t lda,
+           const T *x, size_t incx,
+           const B &amp;beta, T *y, size_t incy);
+};
+</code></pre>
+
+<h3>Arguments:</h3>
+
+<dl>
+<dt>trans</dt>
+<dd>Specifies the transpose operation used for <code>A</code>.
+This is a template parameter which must be explicitly specified.
+
+<ul>
+<li>If <code>trans=N</code>, <code>op(A) = A</code>.</li>
+<li>If <code>trans=T</code>, <code>op(A) = A'</code> (transpose of A)</li>
+<li>If <code>trans=C</code>, <code>op(A) = conj(A')</code> (conjugate transpose of A)</li>
+</ul>
+
+
+<p>Exact checking may is not performed for this parameter, but it should always be specified as one of these three uppercase characters.</p></dd>
+<dt>m</dt>
+<dd>Number of rows of <code>op(A)</code> (i.e. if <code>trans=T</code>, <code>m</code> is the number of columns of <code>A</code>).</dd>
+<dt>n</dt>
+<dd>Number of columns of <code>op(A)</code>.</dd>
+<dt>alpha</dt>
+<dd>The scale factor applied to <code>op(A) * x</code> (for a simple matrix-vector multiply, set this to 1).</dd>
+<dt>a</dt>
+<dd>Pointer to the first element of matrix <code>A</code>.</dd>
+<dt>lda</dt>
+<dd>Leading dimension of matrix <code>A</code> (typically the number of rows of <code>A</code> unless <code>A</code> is a submatrix of a larger matrix).</dd>
+<dt>x</dt>
+<dd>Pointer to the first element of vector <code>x</code>.</dd>
+<dt>incx</dt>
+<dd>Increment (stride) of the vector <code>x</code>.</dd>
+<dt>beta</dt>
+<dd>The scale factor applied to <code>y</code> before adding the product (for a simple matrix-vector multiply, set this to 0).</dd>
+<dt>y</dt>
+<dd>Pointer to the first element of destination vector <code>y</code>.</dd>
+<dt>incy</dt>
+<dd>Increment (stride) of the destination vector <code>y</code>.</dd>
+</dl>
+
+<hr />
+
+<h2>MultTrV<a name="TBLAS_MultTrV" /></h2>
+
+<p>Performs a matrix-vector multiply (<code>x &lt;-- op(A) * x</code>, where <code>op</code> is specified by template parameter <code>trans</code>) where the matrix <code>A</code> is a triangular portion of a rectangular matrix.
+No index or dimension checking is performed.</p>
+
+<p>This function is doubly templated and is, in fact, implemented as the constructor of a <code>struct</code>.
+The outer template parameters correspond to the classical <code>BLAS</code> parameters <code>uplo</code>, <code>trans</code>, and <code>diag</code>, and must be specified.
+Here is an example of how the function should be called:</p>
+
+<pre><code>RNP::TBLAS::MultTrV&lt;'L','N','N'&gt;(n, a, lda, x, incx);
+</code></pre>
+
+<p>This function corresponds to BLAS functions <code>ztrmv</code>, <code>dtrmv</code>, <code>ctrmv</code>, and <code>strmv</code>.</p>
+
+<h3>Prototype</h3>
+
+<pre><code>template &lt;char uplo, char trans, char diag&gt;
+struct MultTrV{
+    template &lt;class T&gt;
+    MultTrV(size_t n, const T *a, size_t lda, T *x, size_t incx);
+};
+</code></pre>
+
+<h3>Arguments:</h3>
+
+<dl>
+<dt>uplo</dt>
+<dd>Specifies whether <code>A</code> is upper or lower triangular.
+This is a template parameter which must be explicitly specified.
+
+<ul>
+<li>If <code>uplo=U</code>, <code>A</code> is an upper triangular matrix.</li>
+<li>If <code>uplo=L</code>, <code>A</code> is a lower triangular matrix.</li>
+</ul>
+
+
+<p>Exact checking may is not performed for this parameter, but it should always be specified as one of these two uppercase characters.</p></dd>
+<dt>trans</dt>
+<dd>Specifies the transpose operation used for <code>A</code>.
+This is a template parameter which must be explicitly specified.
+
+<ul>
+<li>If <code>trans=N</code>, <code>op(A) = A</code>.</li>
+<li>If <code>trans=T</code>, <code>op(A) = A'</code> (transpose of A)</li>
+<li>If <code>trans=C</code>, <code>op(A) = conj(A')</code> (conjugate transpose of A)</li>
+</ul>
+
+
+<p>Exact checking may is not performed for this parameter, but it should always be specified as one of these three uppercase characters.</p></dd>
+<dt>diag</dt>
+<dd>Whether the diagonal of <code>A</code> is all ones (unit triangular).
+This is a template parameter which must be explicitly specified.
+
+<ul>
+<li>If <code>diag=U</code>, <code>A</code> is assumed to be unit triangular.</li>
+<li>If <code>diag=N</code>, <code>A</code> is not assumed to be unit triangular.</li>
+</ul>
+
+
+<p>Exact checking may is not performed for this parameter, but it should always be specified as one of these two uppercase characters.</p></dd>
+<dt>n</dt>
+<dd>Number of rows/columns of <code>op(A)</code>.</dd>
+<dt>a</dt>
+<dd>Pointer to the first element of matrix <code>A</code>.</dd>
+<dt>lda</dt>
+<dd>Leading dimension of matrix <code>A</code> (typically the number of rows of <code>A</code> unless <code>A</code> is a submatrix of a larger matrix).</dd>
+<dt>x</dt>
+<dd>Pointer to the first element of vector <code>x</code>.</dd>
+<dt>incx</dt>
+<dd>Increment (stride) of the vector <code>x</code>.</dd>
+</dl>
+
+<hr />
+
+<h2>SolveTrV<a name="TBLAS_SolveTrV" /></h2>
+
+<p>Performs a triangular matrix solve (<code>x &lt;-- inv(op(A)) * x</code>, where <code>op</code> is specified by template parameter <code>trans</code>) where the matrix <code>A</code> is a triangular portion of a rectangular matrix.
+No index or dimension checking is performed.</p>
+
+<p>This function is doubly templated and is, in fact, implemented as the constructor of a <code>struct</code>.
+The outer template parameters correspond to the classical <code>BLAS</code> parameters <code>uplo</code>, <code>trans</code>, and <code>diag</code>, and must be specified.
+Here is an example of how the function should be called:</p>
+
+<pre><code>RNP::TBLAS::SolveTrV&lt;'L','N','N'&gt;(n, a, lda, x, incx);
+</code></pre>
+
+<p>This function corresponds to BLAS functions <code>ztrsv</code>, <code>dtrsv</code>, <code>ctrsv</code>, and <code>strsv</code>.</p>
+
+<h3>Prototype</h3>
+
+<pre><code>template &lt;char uplo, char trans, char diag&gt;
+struct SolveTrV{
+    template &lt;class T&gt;
+    SolveTrV(size_t n, const T *a, size_t lda, T *x, size_t incx);
+};
+</code></pre>
+
+<h3>Arguments:</h3>
+
+<dl>
+<dt>uplo</dt>
+<dd>Specifies whether <code>A</code> is upper or lower triangular.
+This is a template parameter which must be explicitly specified.
+
+<ul>
+<li>If <code>uplo=U</code>, <code>A</code> is an upper triangular matrix.</li>
+<li>If <code>uplo=L</code>, <code>A</code> is a lower triangular matrix.</li>
+</ul>
+
+
+<p>Exact checking may is not performed for this parameter, but it should always be specified as one of these two uppercase characters.</p></dd>
+<dt>trans</dt>
+<dd>Specifies the transpose operation used for <code>A</code>.
+This is a template parameter which must be explicitly specified.
+
+<ul>
+<li>If <code>trans=N</code>, <code>op(A) = A</code>.</li>
+<li>If <code>trans=T</code>, <code>op(A) = A'</code> (transpose of A)</li>
+<li>If <code>trans=C</code>, <code>op(A) = conj(A')</code> (conjugate transpose of A)</li>
+</ul>
+
+
+<p>Exact checking may is not performed for this parameter, but it should always be specified as one of these three uppercase characters.</p></dd>
+<dt>diag</dt>
+<dd>Whether the diagonal of <code>A</code> is all ones (unit triangular).
+This is a template parameter which must be explicitly specified.
+
+<ul>
+<li>If <code>diag=U</code>, <code>A</code> is assumed to be unit triangular.</li>
+<li>If <code>diag=N</code>, <code>A</code> is not assumed to be unit triangular.</li>
+</ul>
+
+
+<p>Exact checking may is not performed for this parameter, but it should always be specified as one of these two uppercase characters.</p></dd>
+<dt>n</dt>
+<dd>Number of rows/columns of <code>op(A)</code>.</dd>
+<dt>a</dt>
+<dd>Pointer to the first element of matrix <code>A</code>.</dd>
+<dt>lda</dt>
+<dd>Leading dimension of matrix <code>A</code> (typically the number of rows of <code>A</code> unless <code>A</code> is a submatrix of a larger matrix).</dd>
+<dt>x</dt>
+<dd>Pointer to the first element of vector <code>x</code>.</dd>
+<dt>incx</dt>
+<dd>Increment (stride) of the vector <code>x</code>.</dd>
+</dl>
+
+<hr />
+
+<h2>Rank1Update<a name="TBLAS_Rank1Update" /></h2>
+
+<p>Performs a rank 1 update of a matrix (<code>A &lt;-- alpha * x * y' + A</code>.
+No index or dimension checking is performed.</p>
+
+<p>This function corresponds to BLAS functions <code>zgeru</code>, <code>dgeru</code>, <code>cgeru</code>, and <code>sgeru</code>.</p>
+
+<h3>Prototype</h3>
+
+<pre><code>template &lt;class A, class T&gt;
+void Rank1Update(size_t m, size_t n, const A &amp;alpha,
+                 const T *x, size_t incx,
+                 const T *y, size_t incy, T *a, size_t lda);
+</code></pre>
+
+<h3>Arguments:</h3>
+
+<dl>
+<dt>m</dt>
+<dd>Number of rows of <code>A</code>.</dd>
+<dt>n</dt>
+<dd>Number of columns of <code>A</code>.</dd>
+<dt>alpha</dt>
+<dd>The scale factor that is applied to the rank 1 product.</dd>
+<dt>x</dt>
+<dd>Pointer to the first element of column vector <code>x</code>.</dd>
+<dt>incx</dt>
+<dd>Increment (stride) of the column vector <code>x</code>.</dd>
+<dt>y</dt>
+<dd>Pointer to the first element of row vector <code>x</code>.</dd>
+<dt>incy</dt>
+<dd>Increment (stride) of the row vector <code>y</code>.</dd>
+<dt>a</dt>
+<dd>Pointer to the first element of matrix <code>A</code>.</dd>
+<dt>lda</dt>
+<dd>Leading dimension of matrix <code>A</code> (typically the number of rows of <code>A</code> unless <code>A</code> is a submatrix of a larger matrix).</dd>
+</dl>
+
+<hr />
+
+<h2>ConjugateRank1Update<a name="TBLAS_ConjugateRank1Update" /></h2>
+
+<p>Performs a rank 1 update of a matrix (<code>A &lt;-- alpha * x * conj(y') + A</code>.
+No index or dimension checking is performed.</p>
+
+<p>This function corresponds to BLAS functions <code>zgerc</code> and <code>cgerc</code>.</p>
+
+<h3>Prototype</h3>
+
+<pre><code>template &lt;class A, class T&gt;
+void ConjugateRank1Update(size_t m, size_t n, const A &amp;alpha,
+                          const T *x, size_t incx,
+                          const T *y, size_t incy, T *a, size_t lda);
+</code></pre>
+
+<h3>Arguments:</h3>
+
+<dl>
+<dt>m</dt>
+<dd>Number of rows of <code>A</code>.</dd>
+<dt>n</dt>
+<dd>Number of columns of <code>A</code>.</dd>
+<dt>alpha</dt>
+<dd>The scale factor that is applied to the rank 1 product.</dd>
+<dt>x</dt>
+<dd>Pointer to the first element of column vector <code>x</code>.</dd>
+<dt>incx</dt>
+<dd>Increment (stride) of the column vector <code>x</code>.</dd>
+<dt>y</dt>
+<dd>Pointer to the first element of conjugated row vector <code>x</code>.</dd>
+<dt>incy</dt>
+<dd>Increment (stride) of the conjugated row vector <code>y</code>.</dd>
+<dt>a</dt>
+<dd>Pointer to the first element of matrix <code>A</code>.</dd>
+<dt>lda</dt>
+<dd>Leading dimension of matrix <code>A</code> (typically the number of rows of <code>A</code> unless <code>A</code> is a submatrix of a larger matrix).</dd>
+</dl>
+
+<hr />
+
+<h2>MultMM<a name="TBLAS_MultMM" /></h2>
+
+<p>Performs a matrix-matrix multiply (<code>y &lt;-- alpha * op(A) * op(B) + beta * C</code>, where <code>op</code> is specified by template parameters <code>transa</code> and <code>transb</code>).
+No index or dimension checking is performed.</p>
+
+<p>This function is doubly templated and is, in fact, implemented as the constructor of a <code>struct</code>.
+The outer template parameters correspond to the classical <code>BLAS</code> parameters <code>transa</code> and <code>transb</code> and must be specified.
+Here is an example of how the function should be called:</p>
+
+<pre><code>RNP::TBLAS::MultMM&lt;'N','N'&gt;(m, n, k, alpha, a, lda, b, ldb, beta, c, ldc);
+</code></pre>
+
+<p>This function corresponds to BLAS functions <code>zgemm</code>, <code>dgemm</code>, <code>cgemm</code>, and <code>sgemm</code>.</p>
+
+<h3>Prototype</h3>
+
+<pre><code>template &lt;char transa, char transb&gt;
+struct MultMM{
+    template &lt;class A, class B, class T&gt;
+    MultMM(size_t m, size_t n, size_t k, const A &amp;alpha, const T *a, size_t lda,
+           const T *b, size_t ldb, const B &amp;beta, T *c, size_t ldc);
+};
+</code></pre>
+
+<h3>Arguments:</h3>
+
+<dl>
+<dt>transa</dt>
+<dd>Specifies the transpose operation used for <code>A</code>.
+This is a template parameter which must be explicitly specified.
+
+<ul>
+<li>If <code>transa=N</code>, <code>op(A) = A</code>.</li>
+<li>If <code>transa=T</code>, <code>op(A) = A'</code> (transpose of A)</li>
+<li>If <code>transa=C</code>, <code>op(A) = conj(A')</code> (conjugate transpose of A)</li>
+</ul>
+
+
+<p>Exact checking may is not performed for this parameter, but it should always be specified as one of these three uppercase characters.</p></dd>
+<dt>transb</dt>
+<dd>Specifies the transpose operation used for <code>B</code>.
+This is a template parameter which must be explicitly specified.
+
+<ul>
+<li>If <code>transb=N</code>, <code>op(B) = B</code>.</li>
+<li>If <code>transb=T</code>, <code>op(B) = B'</code> (transpose of B)</li>
+<li>If <code>transb=C</code>, <code>op(B) = conj(B')</code> (conjugate transpose of B)</li>
+</ul>
+
+
+<p>Exact checking may is not performed for this parameter, but it should always be specified as one of these three uppercase characters.</p></dd>
+<dt>m</dt>
+<dd>Number of rows of <code>op(A)</code> or the result <code>C</code> (i.e. if <code>trans=T</code>, <code>m</code> is the number of columns of <code>A</code>).</dd>
+<dt>n</dt>
+<dd>Number of columns of <code>op(B)</code> or the result <code>C</code>.</dd>
+<dt>alpha</dt>
+<dd>The scale factor applied to <code>op(A) * op(B)</code> (for a simple matrix-matrix multiply, set this to 1).</dd>
+<dt>a</dt>
+<dd>Pointer to the first element of matrix <code>A</code>.</dd>
+<dt>lda</dt>
+<dd>Leading dimension of matrix <code>A</code> (typically the number of rows of <code>A</code> unless <code>A</code> is a submatrix of a larger matrix).</dd>
+<dt>b</dt>
+<dd>Pointer to the first element of matrix <code>B</code>.</dd>
+<dt>ldb</dt>
+<dd>Leading dimension of matrix <code>B</code>.</dd>
+<dt>beta</dt>
+<dd>The scale factor applied to <code>C</code> before adding the product (for a simple matrix-matrix multiply, set this to 0).</dd>
+<dt>C</dt>
+<dd>Pointer to the first element of destination matrix <code>C</code>.</dd>
+<dt>ldc</dt>
+<dd>Leading dimension of destination matrix <code>C</code>.</dd>
+</dl>
+
+<hr />
+
+<h2>SolveTrM<a name="TBLAS_SolveTrM" /></h2>
+
+<p>Performs a matrix-matrix solve (solve for <code>X</code> in <code>op(A) * X = alpha * B</code> or <code>X * op(A) = alpha * B</code>, where <code>op</code> is specified by template parameter <code>transa</code>).
+No index or dimension checking is performed.</p>
+
+<p>This function is doubly templated and is, in fact, implemented as the constructor of a <code>struct</code>.
+The outer template parameters correspond to the classical <code>BLAS</code> parameters <code>side</code>, <code>uplo</code>, <code>transa</code>, and <code>diag</code>, and must be specified.
+Here is an example of how the function should be called:</p>
+
+<pre><code>RNP::TBLAS::SolveTrM&lt;'L','U','N','N'&gt;(m, n, alpha, a, lda, b, ldb);
+</code></pre>
+
+<p>This function corresponds to BLAS functions <code>ztrsm</code>, <code>dtrsm</code>, <code>ctrsm</code>, and <code>strsm</code>.</p>
+
+<h3>Prototype</h3>
+
+<pre><code>template &lt;char side, char uplo, char transa, char diag&gt;
+struct SolveTrM{
+    template &lt;class TA, class T&gt;
+    SolveTrM(size_t m, size_t n, const TA &amp;alpha, const T *a, size_t lda, T *b, size_t ldb);
+};
+</code></pre>
+
+<h3>Arguments:</h3>
+
+<dl>
+<dt>side</dt>
+<dd>Whether <code>op(A)</code> appears on the left or right of <code>X</code>.
+This is a template parameter which must be explicitly specified.
+
+<ul>
+<li>If <code>side=L</code>, solves <code>op(A) * X = alpha * B</code>.</li>
+<li>If <code>side=R</code>, solves <code>X * op(A) = alpha * B</code>.</li>
+</ul>
+
+
+<p>Exact checking may is not performed for this parameter, but it should always be specified as one of these two uppercase characters.</p></dd>
+<dt>uplo</dt>
+<dd>Specifies whether <code>A</code> is upper or lower triangular.
+This is a template parameter which must be explicitly specified.
+
+<ul>
+<li>If <code>uplo=U</code>, <code>A</code> is an upper triangular matrix.</li>
+<li>If <code>uplo=L</code>, <code>A</code> is a lower triangular matrix.</li>
+</ul>
+
+
+<p>Exact checking may is not performed for this parameter, but it should always be specified as one of these two uppercase characters.</p></dd>
+<dt>transa</dt>
+<dd>Specifies the transpose operation used for <code>A</code>.
+This is a template parameter which must be explicitly specified.
+
+<ul>
+<li>If <code>transa=N</code>, <code>op(A) = A</code>.</li>
+<li>If <code>transa=T</code>, <code>op(A) = A'</code> (transpose of A)</li>
+<li>If <code>transa=C</code>, <code>op(A) = conj(A')</code> (conjugate transpose of A)</li>
+</ul>
+
+
+<p>Exact checking may is not performed for this parameter, but it should always be specified as one of these three uppercase characters.</p></dd>
+<dt>diag</dt>
+<dd>Whether the diagonal of <code>A</code> is all ones (unit triangular).
+This is a template parameter which must be explicitly specified.
+
+<ul>
+<li>If <code>diag=U</code>, <code>A</code> is assumed to be unit triangular.</li>
+<li>If <code>diag=N</code>, <code>A</code> is not assumed to be unit triangular.</li>
+</ul>
+
+
+<p>Exact checking may is not performed for this parameter, but it should always be specified as one of these two uppercase characters.</p></dd>
+<dt>m</dt>
+<dd>Number of rows of <code>B</code>.</dd>
+<dt>n</dt>
+<dd>Number of columns of <code>B</code>.</dd>
+<dt>alpha</dt>
+<dd>The scale factor applied to result (for a simple triangular matrix solve, set this to 1).</dd>
+<dt>a</dt>
+<dd>Pointer to the first element of matrix <code>A</code>.</dd>
+<dt>lda</dt>
+<dd>Leading dimension of matrix <code>A</code> (typically the number of rows of <code>A</code> unless <code>A</code> is a submatrix of a larger matrix).</dd>
+<dt>b</dt>
+<dd>Pointer to the first element of result matrix <code>B</code>.</dd>
+<dt>ldb</dt>
+<dd>Leading dimension of result matrix <code>B</code>.</dd>
+</dl>
+
+<hr />
+
+<h2>Conjugate<a name="TBLAS_Conjugate" /></h2>
+
+<p>Conjugates a vector (<code>x &lt;-- conj(x)</code>).</p>
+
+<p>This function corresponds to LAPACK functions <code>zlacgv</code> and <code>clacgv</code>.</p>
+
+<h3>Prototype</h3>
+
+<pre><code>template &lt;class T&gt;
+void Conjugate(size_t n, T *x, size_t incx);
+</code></pre>
+
+<h3>Arguments:</h3>
+
+<dl>
+<dt>n</dt>
+<dd>Length of the vector.</dd>
+<dt>x</dt>
+<dd>Pointer to the first element of the vector.</dd>
+<dt>incx</dt>
+<dd>Increment (stride) of the vector.</dd>
+</dl>
+
+<hr />
+
+<h2>CopyMatrix<a name="TBLAS_CopyMatrix" /></h2>
+
+<p>Copies all or part of one matrix to another (<code>dst &lt;-- src</code>).</p>
+
+<p>This function is doubly templated and is, in fact, implemented as the constructor of a <code>struct</code>.
+The outer template parameter corresponds to the original <code>LAPACK</code> parameter <code>uplo</code> and must be specified.
+Here is an example of how the function should be called:</p>
+
+<pre><code>RNP::TBLAS::CopyMatrix&lt;'F'&gt;(m, n, src, ldsrc, dst, lddst);
+</code></pre>
+
+<p>This function corresponds to LAPACK functions <code>zlacpy</code>, <code>dlacpy</code>, <code>clacpy</code>, and <code>slacpy</code>.</p>
+
+<h3>Prototype</h3>
+
+<pre><code>template &lt;char uplo&gt;
+struct CopyMatrix{
+    template &lt;class T&gt;
+    CopyMatrix(size_t m, size_t n, const T *src, size_t ldsrc, T *dst, size_t lddst);
+};
+</code></pre>
+
+<h3>Arguments:</h3>
+
+<dl>
+<dt>uplo</dt>
+<dd>Specifies which part of the matrices to copy.
+This is a template parameter which must be explicitly specified.
+
+<ul>
+<li>If <code>uplo=U</code>, only the upper triangle/trapezoid (including diagonal) is copied.</li>
+<li>If <code>uplo=L</code>, only the lower triangle/trapezoid (including diagonal) is copied.</li>
+<li>Any other value will cause the full matrix to be copied.</li>
+</ul>
+</dd>
+<dt>m</dt>
+<dd>Number of rows of the matrices.</dd>
+<dt>n</dt>
+<dd>Number of columns of the matrices.</dd>
+<dt>src</dt>
+<dd>Pointer to the first element of the source matrix.</dd>
+<dt>ldsrc</dt>
+<dd>Leading dimension of the source matrix (typically the number of rows of <code>src</code> unless <code>src</code> is a submatrix of a larger matrix).</dd>
+<dt>dst</dt>
+<dd>Pointer to the first element of the destination matrix.</dd>
+<dt>lddst</dt>
+<dd>Leading dimension of the destination matrix.</dd>
+</dl>
+
+<hr />
+
+<h2>SetMatrix<a name="TBLAS_SetMatrix" /></h2>
+
+<p>Initializes the diagonal and off diagonal elements of all or part of a matrix.</p>
+
+<p>This function is doubly templated and is, in fact, implemented as the constructor of a <code>struct</code>.
+The outer template parameter corresponds to the original <code>LAPACK</code> parameter <code>uplo</code> and must be specified.
+Here is an example of how the function should be called:</p>
+
+<pre><code>RNP::TBLAS::SetMatrix&lt;'L'&gt;(m, n, 0., 1., a, lda);
+</code></pre>
+
+<p>This function corresponds to LAPACK functions <code>zlaset</code>, <code>dlaset</code>, <code>claset</code>, and <code>slaset</code>.</p>
+
+<h3>Prototype</h3>
+
+<pre><code>template &lt;char uplo&gt;
+struct SetMatrix{
+    template &lt;class TA, class TB, class T&gt;
+    SetMatrix(size_t m, size_t n, const TA &amp;offdiag, const TB &amp;diag, T *a, size_t lda);
+}
+</code></pre>
+
+<h3>Arguments:</h3>
+
+<dl>
+<dt>uplo</dt>
+<dd>Specifies which part of the matrices to set.
+This is a template parameter which must be explicitly specified.
+
+<ul>
+<li>If <code>uplo=U</code>, only the upper triangle/trapezoid (including diagonal) is set.</li>
+<li>If <code>uplo=L</code>, only the lower triangle/trapezoid (including diagonal) is set.</li>
+<li>Any other value will cause the full matrix to be copied.</li>
+</ul>
+</dd>
+<dt>m</dt>
+<dd>Number of rows of the matrix.</dd>
+<dt>n</dt>
+<dd>Number of columns of the matrix.</dd>
+<dt>a</dt>
+<dd>Pointer to the first element of the matrix.</dd>
+<dt>lda</dt>
+<dd>Leading dimension of the matrix (typically the number of rows of <code>a</code> unless <code>a</code> is a submatrix of a larger matrix).</dd>
+</dl>
+
+<hr />
+
+<h2>RandomVector<a name="TBLAS_RandomVector" /></h2>
+
+<p>Fills a vector with random complex numbers.</p>
+
+<p>This function is doubly templated and is, in fact, implemented as the constructor of a <code>struct</code>.
+The outer template parameter corresponds to the original <code>LAPACK</code> parameter <code>idist</code> and must be specified.
+Here is an example of how the function should be called:</p>
+
+<pre><code>RNP::TBLAS::RandomVector&lt;2&gt;(n, x);
+</code></pre>
+
+<p>This function corresponds to LAPACK functions <code>zlarnv</code> and <code>clarnv</code>.</p>
+
+<h3>Prototype</h3>
+
+<pre><code>template &lt;int dist&gt;
+struct RandomVector{
+    template &lt;class T&gt;
+    RandomVector(size_t n, T *x, int iseed[4] = NULL);
+};
+</code></pre>
+
+<h3>Arguments:</h3>
+
+<dl>
+<dt>dist</dt>
+<dd>Specifies the distribution of the random numbers.
+This is a template parameter which must be explicitly specified.
+
+<ul>
+<li>If <code>dist=1</code>, real and imaginary parts each uniformly selected from (0,1).</li>
+<li>If <code>dist=2</code>, real and imaginary parts each uniformly selected from (-1,1).</li>
+<li>If <code>dist=3</code>, real and imaginary parts each from standard normal distribution.</li>
+<li>If <code>dist=4</code>, uniformly distributed on the unit disc <code>abs(z) &lt; 1</code>.</li>
+<li>If <code>dist=5</code>, uniformly distributed on the unit circle <code>abs(z) = 1</code>.</li>
+</ul>
+</dd>
+<dt>n</dt>
+<dd>Length of the vector.</dd>
+<dt>x</dt>
+<dd>Pointer to the first element of the vector.</dd>
+<dt>iseed</dt>
+<dd>The seed of the random number generator.
+Each of the 4 elements must be between 0 and 4095 (inclusive), and <code>iseed[3]</code> must be odd.
+The seed is updated on exit. If no seed is provided (by passing in <code>NULL</code>), an internal seed is used and updated.</dd>
+</dl>
+</body>
+</html>

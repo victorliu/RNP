@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html  PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+<title>RNP Documentation -- Random</title>
+<style type="text/css">@import url(rnp.css);</style>
+</head>
+<body>
+
+
+<h1>RNP::Random</h1>
+
+<p>The Random module contains random number generators.
+All functions are in namespace <code>RNP::IO</code>.</p>
+
+<h2>Contents</h2>
+
+<ul>
+<li><a href="#Random_RandomRealsUniform01">RandomRealsUniform01</a></li>
+</ul>
+
+
+<hr />
+
+<h2>RandomRealsUniform01<a name="Random_RandomRealsUniform01" /></h2>
+
+<p>Generates a random number in the open interval (0,1);</p>
+
+<p>This function corresponds to LAPACK function <code>dlaruv</code>.
+Here are the LAPACK notes:</p>
+
+<p>This routine uses a multiplicative congruential method with modulus
+2<sup>48</sup> and multiplier 33952834046453 (see G.S.Fishman,
+&lsquo;Multiplicative congruential random number generators with modulus
+2<sup>b</sup> : an exhaustive analysis for b = 32 and a partial analysis for
+b = 48&rsquo;, Math. Comp. 189, pp 331-344, 1990).</p>
+
+<p>48-bit integers are stored in 4 integer array elements with 12 bits
+per element. Hence the routine is portable across machines with
+integers of 32 bits or more.</p>
+
+<h3>Prototype</h3>
+
+<pre><code>template &lt;class T&gt;
+void RandomRealsUniform01(size_t n, T *x, int iseed[4] = NULL);
+</code></pre>
+
+<h3>Arguments:</h3>
+
+<dl>
+<dt>n</dt>
+<dd>The number of random numbers to be generated.</dd>
+<dt>x</dt>
+<dd>The array where the generated numbers are to be stored.</dd>
+<dt>iseed</dt>
+<dd>Each entry of the seed must be between 0 and 4095 (inclusive), and <code>iseed[3]</code> must be odd.
+On exit, the seed is updated.
+If no seed is passed in (passing in <code>NULL</code>), then an internal seed is used and updated.</dd>
+</dl>
+</body>
+</html>

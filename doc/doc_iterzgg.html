@@ -1,0 +1,208 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html  PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+<title>RNP Documentation -- Iterative generalized eigensystems</title>
+<style type="text/css">@import url(rnp.css);</style>
+</head>
+<body>
+
+
+<h1>Iterative generalized eigensystems</h1>
+
+<p>This module contains functions related to the iterative computation of parts of the spectrum of generalized eigensystems.
+All functions are in namespace <code>RNP</code>.</p>
+
+<h2>Contents</h2>
+
+<ul>
+<li><a href="#RNP_JDQZ">JDQZ</a></li>
+</ul>
+
+
+<hr />
+
+<h2>JDQZ<a name="RNP_JDQZ" /></h2>
+
+<p>Implements the Jacobi-Davidson QZ iteration method.</p>
+
+<p>Solves a generalized eigensystem <code>A * X = lambda * B * X</code>, where only matrix-vector multiplication routines are available for <code>A</code> and <code>B</code> (typically the case for large sparse matrices), and a small number of eigenvalues/vectors are needed.
+The eigenvalues <code>lambda</code> are given as the ratio <code>alpha/beta</code>, just like in the dense case.
+This method can solve for any portion of the spectrum; all that is required is a comparator function for eigenvalues.</p>
+
+<p>The JDQZ method relies on the dense QZ iteration to find small-scale Schur decompositions, as well as an iterative linear solver for solving the correction equation to compute new search directions.
+Functions and adapters are provided for using the iterative solvers in RNP.</p>
+
+<p>Preconditioning is optional but highly recommended as it vastly improves the convergence speed.</p>
+
+<h3>Prototype</h3>
+
+<pre><code>int JDQZ(
+    size_t n, size_t kmax,
+    void (*Aop)(const std::complex&lt;double&gt; *, std::complex&lt;double&gt; *, void*),
+    void (*Bop)(const std::complex&lt;double&gt; *, std::complex&lt;double&gt; *, void*),
+    std::complex&lt;double&gt; *alpha, std::complex&lt;double&gt; *beta,
+    std::complex&lt;double&gt; *eivec, size_t ldeivec,
+    const std::complex&lt;double&gt; &amp;target,
+    bool (*EvalSorter)(const std::complex&lt;double&gt; &amp;, const std::complex&lt;double&gt; &amp;, const std::complex&lt;double&gt; &amp;, const std::complex&lt;double&gt; &amp;, void*),
+    void (*preconditioner)(std::complex&lt;double&gt; *, void *),
+    const JDQZParams &amp;params,
+    JDQZWorkspace *workspace = NULL,
+    void *Aop_data = NULL,
+    void *Bop_data = NULL,
+    void *EvalSorter_data = NULL,
+    void *preconditioner_data = NULL
+);
+</code></pre>
+
+<h3>Arguments:</h3>
+
+<dl>
+<dt>n</dt>
+<dd>The number of rows/columns of matrices <code>A</code> and <code>B</code>.</dd>
+<dt>kmax</dt>
+<dd>The number of desired eigenvalues/vectors to be computed (<code>kmax &lt;= n</code>).</dd>
+<dt>Aop, Bop</dt>
+<dd>Functions which perform matrix multiplication of <code>A</code> and <code>B</code> by a vector specified in the first argument, and places it in the second argument.
+The third argument is user data, and can be passed in via <code>Aop_data</code> and <code>Bop_data</code>.</dd>
+<dt>alpha, beta</dt>
+<dd><p>Vectors of length <code>kmax</code>.
+On exit, <code>alpha[j]/beta[j]</code> will be the generalized eigenvalues.</p>
+
+<p>Note: the quotients <code>alpha[j]/beta[j]</code> may easily over- or
+underflow, and <code>beta[j]</code> may even be zero.  Thus, the user
+should avoid naively computing the ratio <code>alpha/beta</code>.
+However, alpha will be always less than and usually
+comparable with <code>norm(A)</code> in magnitude, and <code>beta</code> always less
+than and usually comparable with <code>norm(B)</code>.</p></dd>
+<dt>eivec</dt>
+<dd>Pointer to the first element of the matrix which will hold the eigenvectors.
+It must have at least <code>n</code> rows and <code>kmax</code> columns. The eigenvectors are stored in the columns in the same order as the eigenvalues.</dd>
+<dt>ldeivec</dt>
+<dd>Leading dimension of matrix <code>eivec</code> (typically <code>n</code> unless <code>eivec</code> is a submatrix of a larger matrix).</dd>
+<dt>target</dt>
+<dd>For solves which aim to compute all eigenvalues nearest to a certain number, specify the target value here.
+For non-targeted solves, it is acceptable to take <code>target = 0</code>.
+Note that this value is not passed to the preconditioner, so the preconditioner must either not require this value or obtain it through its user data paramter.</dd>
+<dt>EvalSorter</dt>
+<dd><p>A comparison (less-than) function for eigenvalues. The sort order is defined such that if eigenvalue <code>p</code> is more desirable than <code>q</code>, then <code>EvalSorter(p,q) = true</code>.
+The sort function is not passed the candidate eigenvalues directly; it is passed the ratios <code>alpha/beta</code> for each eigenvalue.
+Therefore, the first two parameters correspond to <code>alpha</code> and <code>beta</code>, respectively, of the first eigenvalue candidate, and the third and fourth arguments correspond to <code>alpha</code> and <code>beta</code> of the second eigenvalue candidate.
+The last argument is user data and needed for specifying information such as the target eigenvalue for generic sort functions.</p>
+
+<p>Several predefined sort functions are provided for convenience, and some of them specify what <code>EvalSorter_data</code> must be.</p></dd>
+<dt>preconditioner</dt>
+<dd>A function which preconditions the matrix pencil <code>A - target * B</code>.
+It is given a vector in the first argument, to which it should apply an approximation of <code>inv(A - target * B)</code>.
+For non-targeted solves, it is acceptable to take <code>target = 0</code>.
+The second argument is user data and passed in through preconditioner_data.</dd>
+<dt>params</dt>
+<dd>Specifies the JDQZ algorithm parameters. More details about this are provided below.</dd>
+<dt>workspace</dt>
+<dd>Pointer to a workspace structure. If ignored (by passing in <code>NULL</code>), the workspace is automatically allocated and freed internally.
+If repeated solves will be performed, it is best to pre-allocate the space and use it repeatedly.
+Use the functions <code>JDQZ_alloc</code> and <code>JDQZ_free</code> for this purpose.</dd>
+<dt>Aop_data, Bop_data</dt>
+<dd>User data that is passed in to each call of <code>Aop</code> and <code>Bop</code>. For sparse matrices, typically this will be a pointer to the sparse matrix structure itself.</dd>
+<dt>EvalSorter_data</dt>
+<dd>User data that is passed in to each call of <code>EvalSorter</code>. For targeted solves, typically this will be a pointer to the target value.</dd>
+<dt>preconditioner_data</dt>
+<dd>User data that is passed in to each call of <code>preconditioner</code>. For targeted solves, typically this will be a pointer to the target value.</dd>
+</dl>
+
+<h3>Predefined sort functions</h3>
+
+<ul>
+<li>JDQZSort_MaxReal &ndash; Solves for eigenvalues with the greatest real part.</li>
+<li>JDQZSort_MinReal &ndash; Solves for eigenvalues with the least real part.</li>
+<li>JDQZSort_MaxAbs &ndash; Solves for eigenvalues with the greatest magnitude.</li>
+<li>JDQZSort_MinAbs &ndash; Solves for eigenvalues with the least magnitude.</li>
+<li>JDQZSort_MaxImag &ndash; Solves for eigenvalues with the greatest imaginary part.</li>
+<li>JDQZSort_MinImag &ndash; Solves for eigenvalues with the least imaginary part.</li>
+<li>JDQZSort_Nearest &ndash; Solves for eigenvalues nearest some target value. The target value must be passed in as user data in the form of a pointer to a <code>std::complex&lt;double&gt;</code> whose value is the target.</li>
+<li>JDQZSort_NearestAbs &ndash; Solves for eigenvalues whose magnitude is nearest some target value. The target value must be passed in as user data in the form of a pointer to a <code>double</code> whose value is the target.</li>
+</ul>
+
+
+<h3>JDQZParams</h3>
+
+<p>The fields in the parameter structure are described below.</p>
+
+<dl>
+<dt>eps</dt>
+<dd>The tolerance of the eigensolutions: <code>|beta * A * x - alpha * B * x| / (|alpha/beta|) &lt; eps</code>.
+The default value is 1e-9.</dd>
+<dt>lock</dt>
+<dd>Specifies the tracking parameter.
+When eigenvalues are near convergence, the tracking parameter controls how the target adaptively changes.
+The default value is 1e-9.</dd>
+<dt>min_search_space, max_search_space</dt>
+<dd>Specifies the bounds on the dimension of the search space.
+This parameter controls the amount of temporary storage required by the algorithm.
+If 0 is specified for either bound, a default value is computed based on the desired <code>kmax</code>.
+Tehd default values are both 0.</dd>
+<dt>max_iters</dt>
+<dd>The maximum number of iterations allowed in the JDQZ algorithm.</dd>
+<dt>max_mult</dt>
+<dd>The maximum number of matrix-vector multiplications allowed in the linear solver.</dd>
+<dt>testspace</dt>
+<dd><p>Specifies how the testspace is generated. This parameter is very important and its selection depends on the type of solve to be performed.</p>
+
+<ul>
+<li>= 1: Standard Petrov (<code>conj(alpha) * A * v + conj(beta) * B * v</code>)</li>
+<li>= 2: Standard &ldquo;variable&rdquo; Petrov</li>
+<li>= 3: Harmonic Petrov (<code>beta * A * v - alpha * B * v</code>)</li>
+<li>= 4: The test space is the same as the search space</li>
+<li>= 5: <code>B * v</code></li>
+<li>= 6: <code>A * v</code></li>
+</ul>
+
+
+<p>When a targeted solve is desired, only values 1-3 should be used, with 3 being the most preferable.
+The value 4 is not implemented, and should never be used.
+When an extremal part of the spectrum is desired, 5 should be used. Other values should be avoided unless you know what you are doing.</p></dd>
+<dt>linear_solver</dt>
+<dd><p>A function which performs a linear solve of a given matrix operator and preconditioner.
+Its prototype is as follows:</p>
+
+<pre><code>void linear_solver(
+    size_t n,
+    // These next two arguments should be passed unmodified as the linear
+    // solver's matrix-vector operator data. Failure to do so results in
+    // undefined behavior.
+    void (*op)(const std::complex&lt;double&gt; *, std::complex&lt;double&gt; *, void*),
+    void *op_data,
+    std::complex&lt;double&gt; *x, // Place solution vector here
+    std::complex&lt;double&gt; *b, // RHS given here, can be modified
+    double tol,
+    size_t &amp;max_mult,
+    // These next two arguments should be passed unmodified as the linear
+    // solver's preconditioner data. Failure to do so results in undefined
+    // behavior.
+    void (*jdqz_precon)(std::complex&lt;double&gt; *x, void *precon_data),
+    void *jdqz_precon_data,
+    void *data); // data is passed in through linear_solver_data
+</code></pre>
+
+<p>The parameters <code>op</code>, <code>op_data</code>, <code>jdqz_precon</code>, and <code>jdqz_precon_data</code> should be passed on to the linear solver as the matrix-vector multiplication routine, and its preconditioner (and associated user data).
+As usual, <code>n</code> is the dimension of the matrix, <code>tol</code> is the solution tolerance, and <code>max_mult</code> is the maximum number of matrix-vector multiplies allowed.
+The result should be stored in <code>x</code>, while the right hand side is given in <code>b</code> and is allowed to be modified.
+The last argument <code>data</code> is user data that is passed in through <code>linear_solver_data</code> (the next argument described below).</p></dd>
+<dt>linear_solver_data</dt>
+<dd>This is user data passed to <code>linear_solver</code> each time it is called. Typically, this will be a structure specifying algorithmic parameters for the linear solver.</dd>
+</dl>
+
+<h3>Linear solver adapters</h3>
+
+<p>Adapters are provided for the iterative solvers in RNP.
+All of them require passing in a pointer to a <code>JDQZ_LinearSolver_adapter_data</code> structure in the <code>linear_solver_data</code> field of the <code>JDQZParams</code> structure.
+The adapters use the default algorithmic parameters of the solvers.
+The adapters are list below:</p>
+
+<ul>
+<li><code>JDQZ_IDRs_adapter</code> &ndash; adapter for <code>IDRs</code>.</li>
+<li><code>JDQZ_GMRES_adapter</code> &ndash; adapter for <code>GMRES</code>.</li>
+</ul>
+
+</body>
+</html>

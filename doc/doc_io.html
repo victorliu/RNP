@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html  PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+<title>RNP Documentation -- IO</title>
+<style type="text/css">@import url(rnp.css);</style>
+</head>
+<body>
+
+
+<h1>RNP::IO</h1>
+
+<p>The IO module contains convenience functions for outputting numbers, vectors, and matrices to C++ STL streams.
+The output format can be tailored for easy import into numerical packages.
+Currently, there are preprocessor flags <code>RNP_OUTPUT_MATHEMATICA</code> and <code>RNP_OUTPUT_MATLAB</code> for the respective software programs.
+All functions are in namespace <code>RNP::IO</code>.</p>
+
+<p>Note that Mathematica output does not convert the exponential <code>E</code> in floating point numbers into <code>*^</code>; this conversion must be performed manually.</p>
+
+<h2>Contents</h2>
+
+<ul>
+<li><a href="#IO_Print">Print</a></li>
+<li><a href="#IO_PrintVector">PrintVector</a></li>
+<li><a href="#IO_PrintMatrix">PrintMatrix</a></li>
+</ul>
+
+
+<hr />
+
+<h2>Print<a name="IO_Print" /></h2>
+
+<p>Outputs a number.
+Returns the output stream passed in.</p>
+
+<h3>Prototype</h3>
+
+<pre><code>template &lt;class T&gt;
+std::ostream&amp; Print(const T &amp;value, std::ostream &amp;os = std::cout);
+</code></pre>
+
+<h3>Arguments:</h3>
+
+<dl>
+<dt>value</dt>
+<dd>The scalar value to output.</dd>
+<dt>os</dt>
+<dd>The output stream to use. Defaults to <code>std::cout</code>.</dd>
+</dl>
+
+<hr />
+
+<h2>PrintVector<a name="IO_PrintVector" /></h2>
+
+<p>Outputs a vector.
+Returns the output stream passed in.</p>
+
+<h3>Prototype</h3>
+
+<pre><code>template &lt;class T&gt;
+std::ostream&amp; PrintVector(size_t n, const T *x, size_t incx = 1, std::ostream &amp;os = std::cout);
+</code></pre>
+
+<h3>Arguments:</h3>
+
+<dl>
+<dt>n</dt>
+<dd>Length of the vector.</dd>
+<dt>x</dt>
+<dd>Pointer to the first element of the vector.</dd>
+<dt>incx</dt>
+<dd>Increment (stride) of the vector.</dd>
+<dt>os</dt>
+<dd>The output stream to use. Defaults to <code>std::cout</code>.</dd>
+</dl>
+
+<hr />
+
+<h2>PrintMatrix<a name="IO_PrintMatrix" /></h2>
+
+<p>Outputs a rectangular matrix.
+Returns the output stream passed in.</p>
+
+<h3>Prototype</h3>
+
+<pre><code>template &lt;class T&gt;
+std::ostream&amp; PrintMatrix(size_t m, size_t n, const T *a, size_t lda, std::ostream &amp;os = std::cout);
+</code></pre>
+
+<h3>Arguments:</h3>
+
+<dl>
+<dt>m</dt>
+<dd>Number of rows of the matrix.</dd>
+<dt>n</dt>
+<dd>Number of columns of the matrix.</dd>
+<dt>a</dt>
+<dd>Pointer to the first element of the matrix.</dd>
+<dt>lda</dt>
+<dd>Leading dimension of the matrix (typically the number of rows of <code>a</code> unless <code>a</code> is a submatrix of a larger matrix).</dd>
+<dt>os</dt>
+<dd>The output stream to use. Defaults to <code>std::cout</code>.</dd>
+</dl>
+</body>
+</html>

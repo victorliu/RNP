@@ -1,0 +1,143 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html  PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+<title>RNP Documentation -- Eigensystems</title>
+<style type="text/css">@import url(rnp.css);</style>
+</head>
+<body>
+
+
+<h1>Eigensystems</h1>
+
+<p>This module contains functions related to the computation of eigensystems or Schur decompositions.
+All functions are in namespace <code>RNP</code>.</p>
+
+<h2>Contents</h2>
+
+<ul>
+<li><a href="#RNP_Eigensystem">Eigensystem</a></li>
+<li><a href="#RNP_Eigensystem_jacobi">Eigensystem_jacobi</a></li>
+</ul>
+
+
+<hr />
+
+<h2>Eigensystem<a name="RNP_Eigensystem" /></h2>
+
+<p>Eigensystem computes for an <code>n</code>x<code>n</code> complex nonsymmetric matrix A, the
+eigenvalues and, optionally, the left and/or right eigenvectors.</p>
+
+<p>The right eigenvector <code>v[j]</code> of A satisfies</p>
+
+<pre><code>             `A * v[j] = lambda[j] * v[j]`
+</code></pre>
+
+<p>where <code>lambda[j]</code> is its eigenvalue.
+The left eigenvector <code>u[j]</code> of A satisfies</p>
+
+<pre><code>          `u[j]^H * A = lambda[j] * u[j]^H`
+</code></pre>
+
+<p>where <code>u[j]^H</code> denotes the conjugate transpose of <code>u[j]</code>.</p>
+
+<p>The computed eigenvectors are normalized to have Euclidean norm
+equal to 1 and largest component real.</p>
+
+<p>This function corresponds to LAPACK functions <code>zgeev</code> and <code>cgeev</code>.</p>
+
+<p>Return value:</p>
+
+<ul>
+<li><code>= 0</code>:  Successful exit</li>
+<li><code>&lt; 0</code>:  if return value = <code>-i</code>, the (1-based) <code>i</code>-th argument had an illegal value.</li>
+<li><code>&gt; 0</code>:  the QR algorithm failed to compute all the eigenvalues, and no eigenvectors have been computed; elements and <code>return value</code>,&hellip;,<code>n-1</code> of eval contain eigenvalues which have converged.</li>
+</ul>
+
+
+<h3>Prototype</h3>
+
+<pre><code>int Eigensystem(
+    size_t n, std::complex&lt;double&gt;* a, size_t lda,
+    std::complex&lt;double&gt;* eval,
+    std::complex&lt;double&gt;* evec, size_t ldvec,
+    std::complex&lt;double&gt; *work, double *rwork);
+</code></pre>
+
+<h3>Arguments:</h3>
+
+<dl>
+<dt>n</dt>
+<dd>The number of rows/columsn of matrix <code>A</code>.</dd>
+<dt>a</dt>
+<dd>Pointer to the first element of matrix <code>A</code>.</dd>
+<dt>lda</dt>
+<dd>Leading dimension of matrix <code>A</code> (typically the number of rows of <code>A</code> unless <code>A</code> is a submatrix of a larger matrix).</dd>
+<dt>eval</dt>
+<dd>Pointer to output space for eigenvalues, stored contiguously.</dd>
+<dt>vl</dt>
+<dd>Pointer to output matrix for left eigenvectors, stored in columns in same order as <code>eval</code>.
+If <code>NULL</code>, then no left eigenvectors will be computed.</dd>
+<dt>ldvl</dt>
+<dd>Leading dimension of matrix <code>vl</code>.</dd>
+<dt>vr</dt>
+<dd>Pointer to output matrix for right eigenvectors, stored in columns in same order as <code>eval</code>.
+If <code>NULL</code>, then no right eigenvectors will be computed.</dd>
+<dt>ldvr</dt>
+<dd>Leading dimension of matrix <code>vr</code>.</dd>
+<dt>work</dt>
+<dd>Pointer to complex workspace, should be length <code>2*n</code>.</dd>
+<dt>rwork</dt>
+<dd>Pointer to real workspace, should be length <code>2*n</code>.</dd>
+</dl>
+
+<h2>Eigensystem_jacobi<a name="RNP_Eigensystem_jacobi" /></h2>
+
+<p>This function is identical to <a href="#RNP_Eigensystem">Eigensystem</a> except that it uses modified Jacobi rotations to diagonalize the matrix and requires no workspace.
+This is substantially slower than the QR iteration of the standard LAPACK algorithm above, but it may provide better relative accuracy of results.</p>
+
+<p>Return value:</p>
+
+<ul>
+<li><code>= 0</code>: Successful exit.</li>
+<li><code>&gt; 0</code>: Failure to fully diagonalize matrix. Return value is the number of Jacobi passes performed so far.</li>
+</ul>
+
+
+<h3>Prototype</h3>
+
+<pre><code>int Eigensystem_jacobi(
+    size_t n, std::complex&lt;double&gt;* a, size_t lda,
+    std::complex&lt;double&gt;* eval,
+    std::complex&lt;double&gt;* evec, size_t ldvec,
+    std::complex&lt;double&gt; *work, double *rwork);
+</code></pre>
+
+<h3>Arguments:</h3>
+
+<dl>
+<dt>n</dt>
+<dd>The number of rows/columsn of matrix <code>A</code>.</dd>
+<dt>a</dt>
+<dd>Pointer to the first element of matrix <code>A</code>.</dd>
+<dt>lda</dt>
+<dd>Leading dimension of matrix <code>A</code> (typically the number of rows of <code>A</code> unless <code>A</code> is a submatrix of a larger matrix).</dd>
+<dt>eval</dt>
+<dd>Pointer to output space for eigenvalues, stored contiguously.</dd>
+<dt>vl</dt>
+<dd>Pointer to output matrix for left eigenvectors, stored in columns in same order as <code>eval</code>.
+If <code>NULL</code>, then no left eigenvectors will be computed.</dd>
+<dt>ldvl</dt>
+<dd>Leading dimension of matrix <code>vl</code>.</dd>
+<dt>vr</dt>
+<dd>Pointer to output matrix for right eigenvectors, stored in columns in same order as <code>eval</code>.
+If <code>NULL</code>, then no right eigenvectors will be computed.</dd>
+<dt>ldvr</dt>
+<dd>Leading dimension of matrix <code>vr</code>.</dd>
+<dt>work</dt>
+<dd>This argument is not used.</dd>
+<dt>rwork</dt>
+<dd>This argument is not used.</dd>
+</dl>
+</body>
+</html>

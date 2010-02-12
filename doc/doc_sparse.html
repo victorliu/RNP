@@ -1,0 +1,146 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html  PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+<title>RNP Documentation -- Sparse</title>
+<style type="text/css">@import url(rnp.css);</style>
+</head>
+<body>
+
+
+<h1>RNP::Sparse</h1>
+
+<p>The Sparse module contains sparse matrix structures, multiplication routines, and optional IO routines.
+All functions and data structures are in namespace <code>RNP::Sparse</code>.</p>
+
+<p>If the preprocessor flag <code>RNP_SPARSE_USE_IO</code>, then the IO functions are defined, and <code>IO.h</code> is required.</p>
+
+<h2>Contents</h2>
+
+<h3>Sparse matrix structures</h3>
+
+<ul>
+<li><a href="#Sparse_TCCSMatrix">TCCSMatrix</a></li>
+<li><a href="#Sparse_TCRSMatrix">TCRSMatrix</a></li>
+</ul>
+
+
+<h3>Sparse matrix utility routines</h3>
+
+<ul>
+<li><a href="#Sparse_MultMV">MultMV</a></li>
+<li><a href="#Sparse_PrintSparseMatrix">PrintSparseMatrix</a></li>
+</ul>
+
+
+<hr />
+
+<h2>TCCSMatrix<a name="Sparse_TCCSMatrix" /></h2>
+
+<p>A compressed column storage sparse matrix, templated on the value type it contains.
+This structure is not meant to be used directly; it should be constructed once from an entry-map, and the only subsequent operations it may perform are multiplying vectors.</p>
+
+<h3>Constructor</h3>
+
+<p>There is only one constructor of any significance:</p>
+
+<pre><code>template &lt;class T&gt;
+typedef std::pair&lt;size_t,size_t&gt; index_t;
+typedef std::map&lt;index_t, T, index_comp_t&gt; entry_map_t;
+TCCSMatrix(size_t N, const entry_map_t &amp;entries);
+</code></pre>
+
+<p>This constructs an NxN matrix from a set of index-value pairs.
+Each index is a pair of 0-based (row,column) indexes.
+It is assumed that the matrix contains at least one nonzero element per column (or else the constructor fails silently).</p>
+
+<hr />
+
+<h2>TCRSMatrix<a name="Sparse_TCRSMatrix" /></h2>
+
+<p>A compressed row storage sparse matrix, templated on the value type it contains.
+This structure is not meant to be used directly; it should be constructed once from an entry-map, and the only subsequent operations it may perform are multiplying vectors.</p>
+
+<h3>Constructor</h3>
+
+<p>There is only one constructor of any significance:</p>
+
+<pre><code>template &lt;class T&gt;
+typedef std::pair&lt;size_t,size_t&gt; index_t;
+typedef std::map&lt;index_t, T, index_comp_t&gt; entry_map_t;
+TCRSMatrix(size_t N, const entry_map_t &amp;entries);
+</code></pre>
+
+<p>This constructs an NxN matrix from a set of index-value pairs.
+Each index is a pair of 0-based (row,column) indexes.
+It is assumed that the matrix contains at least one nonzero element per row (or else the constructor fails silently).</p>
+
+<hr />
+
+<h2>MultMV<a name="Sparse_MultMV" /></h2>
+
+<p>Performs a matrix-vector multiply (actually, an Axpy-like operation, `y &lt;&mdash; alpha * A * x + beta * y).
+There is one overload defined for each type of matrix structure defined above.</p>
+
+<h3>Prototype</h3>
+
+<pre><code>template &lt;class T&gt;
+void MultMV(
+    const MATRIX_TYPE&lt;T&gt; &amp;A, const T *X, T *Y,
+    const T &amp;scale_AX = T(1),
+    const T &amp;scale_Y = T(0)
+    );
+
+The type `MATRIX_TYPE` is one of `TCCSMatrix` or `TCRSMatrix`.
+</code></pre>
+
+<h3>Arguments:</h3>
+
+<dl>
+<dt>A</dt>
+<dd>The matrix <code>A</code>.</dd>
+<dt>X</dt>
+<dd>Pointer to the first element of vector <code>x</code>.
+It is assumed that the elements are stored contiguously (<code>incx=1</code>)</dd>
+<dt>Y</dt>
+<dd>Pointer to the first element of the result vector <code>y</code>.
+It is assumed that the elements are stored contiguously (<code>incy=1</code>)</dd>
+<dt>scale_AX</dt>
+<dd>The scale factor for the product (<code>alpha</code> in the above equation).</dd>
+<dt>scale_Y</dt>
+<dd>The scale factor for the original vector before adding the product (<code>beta</code> in the above equation).</dd>
+</dl>
+
+<hr />
+
+<h2>PrintSparseMatrix<a name="Sparse_PrintSparseMatrix" /></h2>
+
+<p>Outputs a sparse matrix.
+Returns the output stream passed in.</p>
+
+<p>This family of functions is only defined if <code>RNP_SPARSE_USE_IO</code> is defined.</p>
+
+<h3>Prototype</h3>
+
+<pre><code>template &lt;class T&gt;
+void PrintSparseMatrix(const MATRIX_TYPE&lt;T&gt; &amp;A);
+
+The type `MATRIX_TYPE` is one of `TCCSMatrix` or `TCRSMatrix`.
+</code></pre>
+
+<h3>Arguments:</h3>
+
+<dl>
+<dt>m</dt>
+<dd>Number of rows of the matrix.</dd>
+<dt>n</dt>
+<dd>Number of columns of the matrix.</dd>
+<dt>a</dt>
+<dd>Pointer to the first element of the matrix.</dd>
+<dt>lda</dt>
+<dd>Leading dimension of the matrix (typically the number of rows of <code>a</code> unless <code>a</code> is a submatrix of a larger matrix).</dd>
+<dt>os</dt>
+<dd>The output stream to use. Defaults to <code>std::cout</code>.</dd>
+</dl>
+</body>
+</html>

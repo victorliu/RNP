@@ -1,0 +1,211 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html  PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+<title>RNP Documentation -- Generalized eigensystems</title>
+<style type="text/css">@import url(rnp.css);</style>
+</head>
+<body>
+
+
+<h1>Generalized eigensystems</h1>
+
+<p>This module contains functions related to the computation of generalized eigensystems or generalized Schur decompositions.
+All functions are in namespace <code>RNP</code>.</p>
+
+<h2>Contents</h2>
+
+<ul>
+<li><a href="#RNP_GeneralizedEigensystem">GeneralizedEigensystem</a></li>
+<li><a href="#RNP_GeneralizedSchurDecomposition">GeneralizedSchurDecomposition</a></li>
+</ul>
+
+
+<hr />
+
+<h2>GeneralizedEigensystem<a name="RNP_GeneralizedEigensystem" /></h2>
+
+<p>Computes for a pair of <code>n</code>x<code>n</code> matrices (A,B), the generalized eigenvalues, and optionally, the left and/or right generalized eigenvectors.</p>
+
+<p>A generalized eigenvalue for a pair of matrices (A,B) is a scalar
+<code>lambda</code> or a ratio <code>alpha/beta = lambda</code>, such that <code>A - lambda * B</code> is
+singular. It is usually represented as the pair (<code>alpha</code>,<code>beta</code>), as
+there is a reasonable interpretation for <code>beta = 0</code>, and even for both
+being zero.</p>
+
+<p>The right generalized eigenvector <code>v[j]</code> corresponding to the
+generalized eigenvalue <code>lambda[j]</code> of (A,B) satisfies</p>
+
+<pre><code>         `A * v[j] = lambda[j] * B * v[j]`.
+</code></pre>
+
+<p>The left generalized eigenvector <code>u[j]</code> corresponding to the
+generalized eigenvalues <code>lambda[j]</code> of (A,B) satisfies</p>
+
+<pre><code>         `u[j]^H * A = lambda[j] * u[j]^H * B`
+</code></pre>
+
+<p>where <code>u[j]^H</code> is the conjugate-transpose of <code>u[j]</code>.
+We denote by <code>U</code> the matrix whose columns are <code>u[j]</code> for <code>j = 1 ... N</code> (and correspondingly for <code>V</code>).</p>
+
+<p>This function corresponds to LAPACK functions <code>zggev</code>, <code>zgegv</code>, <code>cggev</code>, and <code>cgegv</code>.</p>
+
+<p>Return value:</p>
+
+<ul>
+<li><code>= 0</code>: Successful exit</li>
+<li><code>&lt; 0</code>: if return value = <code>-i</code>, the (1-based) <code>i</code>-th argument had an illegal value.</li>
+<li><code>=1,...,n+1</code>: The QZ iteration failed.  No eigenvectors have been calculated, but <code>alpha[j]</code> and <code>beta[j]</code> should be correct for <code>j =</code>return value-1<code>,...,n-1</code>.</li>
+<li><code>=n+2</code>: There was an error computing the eigenvectors.</li>
+</ul>
+
+
+<h3>Prototype</h3>
+
+<pre><code>int GeneralizedEigensystem(size_t n, 
+    std::complex&lt;double&gt; *a, size_t lda, std::complex&lt;double&gt; *b, size_t ldb, 
+    std::complex&lt;double&gt; *alpha, std::complex&lt;double&gt; *beta,
+    std::complex&lt;double&gt; *vl, size_t ldvl, std::complex&lt;double&gt; *vr, size_t ldvr,
+    std::complex&lt;double&gt; *work, double *rwork);
+</code></pre>
+
+<h3>Arguments:</h3>
+
+<dl>
+<dt>n</dt>
+<dd>The number of rows/columns of matrices <code>A</code>, <code>B</code>, <code>The order of the matrices A, B,</code>U<code>, and</code>V`.</dd>
+<dt>a</dt>
+<dd>Pointer to the first element of matrix <code>A</code>.
+On exit, a is overwritten.</dd>
+<dt>lda</dt>
+<dd>Leading dimension of matrix <code>A</code> (typically the number of rows of <code>A</code> unless <code>A</code> is a submatrix of a larger matrix).</dd>
+<dt>b</dt>
+<dd>Pointer to the first element of matrix <code>B</code>.
+On exit, b is overwritten.</dd>
+<dt>ldb</dt>
+<dd>Leading dimension of matrix <code>B</code>.</dd>
+<dt>alpha, beta</dt>
+<dd><p>Vectors of length <code>n</code>.
+On exit, <code>alpha[j]/beta[j]</code> will be the generalized eigenvalues.</p>
+
+<p>Note: the quotients <code>alpha[j]/beta[j]</code> may easily over- or
+underflow, and <code>beta[j]</code> may even be zero.  Thus, the user
+should avoid naively computing the ratio <code>alpha/beta</code>.
+However, alpha will be always less than and usually
+comparable with <code>norm(A)</code> in magnitude, and <code>beta</code> always less
+than and usually comparable with <code>norm(B)</code>.</p></dd>
+<dt>vl</dt>
+<dd>Pointer to the first element of matrix <code>U</code>.
+If <code>vl != NULL</code>, the left generalized eigenvectors <code>u[j]</code> are
+stored one after another in the columns of <code>vl</code>, in the same order as their eigenvalues.
+Each eigenvector is scaled so the largest component has <code>abs(real part) + abs(imag part) = 1</code>.</dd>
+<dt>ldvl</dt>
+<dd>Leading dimension of matrix <code>U</code>.</dd>
+<dt>vr</dt>
+<dd>Pointer to the first element of matrix <code>V</code>.
+If <code>vr != NULL</code>, the right generalized eigenvectors <code>v[j]</code> are
+stored one after another in the columns of <code>vr</code>, in the same
+order as their eigenvalues.
+Each eigenvector is scaled so the largest component has
+<code>abs(real part) + abs(imag. part) = 1</code>.</dd>
+<dt>ldvr</dt>
+<dd>Leading dimension of matrix <code>V</code>.</dd>
+<dt>work</dt>
+<dd>Pointer to complex workspace, should be length <code>2*n</code>.</dd>
+<dt>rwork</dt>
+<dd>Pointer to real workspace, should be length <code>8*n</code>.</dd>
+</dl>
+
+<hr />
+
+<h2>GeneralizedSchurDecomposition<a name="RNP_GeneralizedSchurDecomposition" /></h2>
+
+<p>Computes for a pair of <code>n</code>x<code>n</code> matrices (A,B),
+the generalized eigenvalues, the generalized complex Schur form
+(S, T), and optionally left and/or right Schur vectors (<code>vsl</code> and
+<code>vsr</code>). This gives the generalized Schur factorization</p>
+
+<pre><code>    `(A,B) = ( U*S*V^H, U*T*V^H )`
+</code></pre>
+
+<p>where we donote by <code>U</code> the square matrix whose columns are the left Schur vectors, <code>V</code> the square matrix whose columns are the right Schur vectors, and <code>V^H</code> is the conjugate-transpose of <code>V</code>.</p>
+
+<p>A generalized eigenvalue for a pair of matrices (A,B) is a scalar <code>w</code>
+or a ratio <code>alpha/beta = w</code>, such that  <code>A - w*B</code> is singular.  It is
+usually represented as the pair (<code>alpha</code>,<code>beta</code>), as there is a
+reasonable interpretation for <code>beta = 0</code>, and even for both being zero.</p>
+
+<p>A pair of matrices (S,T) is in generalized complex Schur form if <code>S</code>
+and <code>T</code> are upper triangular and, in addition, the diagonal elements
+of <code>T</code> are non-negative real numbers.</p>
+
+<p>This function corresponds to LAPACK functions <code>zgges</code>, <code>zgegs</code>, <code>cgges</code>, and <code>cgegs</code>.</p>
+
+<p>Return value:</p>
+
+<ul>
+<li><code>= 0</code>: Successful exit</li>
+<li><code>&lt; 0</code>: if return value = <code>-i</code>, the (1-based) <code>i</code>-th argument had an illegal value.</li>
+<li><code>=1,...,n+1</code>: The QZ iteration failed.  No eigenvectors have been calculated, but <code>alpha[j]</code> and <code>beta[j]</code> should be correct for <code>j =</code>return value<code>,...,n-1</code>.</li>
+<li><code>=n+1</code>: The QZ iteration failed.</li>
+</ul>
+
+
+<h3>Prototype</h3>
+
+<pre><code>int GeneralizedSchurDecomposition(size_t n,
+    std::complex&lt;double&gt; *a, size_t lda, std::complex&lt;double&gt; *b, size_t ldb,
+    std::complex&lt;double&gt; *alpha, std::complex&lt;double&gt; *beta,
+    std::complex&lt;double&gt; *vsl, size_t ldvsl, std::complex&lt;double&gt; *vsr, size_t ldvsr,
+    std::complex&lt;double&gt; *work, double *rwork);
+</code></pre>
+
+<h3>Arguments:</h3>
+
+<dl>
+<dt>n</dt>
+<dd>The number of rows/columns of matrices <code>A</code>, <code>B</code>, <code>The order of the matrices A, B,</code>U<code>, and</code>V`.</dd>
+<dt>a</dt>
+<dd>Pointer to the first element of matrix <code>A</code>.
+On exit, a is overwritten with matrix <code>S</code>.</dd>
+<dt>lda</dt>
+<dd>Leading dimension of matrix <code>A</code> (typically the number of rows of <code>A</code> unless <code>A</code> is a submatrix of a larger matrix).</dd>
+<dt>b</dt>
+<dd>Pointer to the first element of matrix <code>B</code>.
+On exit, b is overwritten with matrix <code>T</code>.</dd>
+<dt>ldb</dt>
+<dd>Leading dimension of matrix <code>B</code>.</dd>
+<dt>alpha, beta</dt>
+<dd><p>Vectors of length <code>n</code>.
+On exit, <code>alpha[j]/beta[j]</code> will be the diagonals of the complex Schur form (A,B).
+The <code>beta[j]</code> will be non-negative real.</p>
+
+<p>Note: the quotients <code>alpha[j]/beta[j]</code> may easily over- or
+underflow, and <code>beta[j]</code> may even be zero.  Thus, the user
+should avoid naively computing the ratio <code>alpha/beta</code>.
+However, alpha will be always less than and usually
+comparable with <code>norm(A)</code> in magnitude, and <code>beta</code> always less
+than and usually comparable with <code>norm(B)</code>.</p></dd>
+<dt>vl</dt>
+<dd>Pointer to the first element of matrix <code>U</code>.
+If <code>vl != NULL</code>, the left generalized eigenvectors <code>u[j]</code> are
+stored one after another in the columns of <code>vl</code>, in the same order as their eigenvalues.
+Each eigenvector is scaled so the largest component has <code>abs(real part) + abs(imag part) = 1</code>.</dd>
+<dt>ldvl</dt>
+<dd>Leading dimension of matrix <code>U</code>.</dd>
+<dt>vr</dt>
+<dd>Pointer to the first element of matrix <code>V</code>.
+If <code>vr != NULL</code>, the right generalized eigenvectors <code>v[j]</code> are
+stored one after another in the columns of <code>vr</code>, in the same
+order as their eigenvalues.
+Each eigenvector is scaled so the largest component has
+<code>abs(real part) + abs(imag. part) = 1</code>.</dd>
+<dt>ldvr</dt>
+<dd>Leading dimension of matrix <code>V</code>.</dd>
+<dt>work</dt>
+<dd>Pointer to complex workspace, should be length <code>2*n</code>.</dd>
+<dt>rwork</dt>
+<dd>Pointer to real workspace, should be length <code>8*n</code>.</dd>
+</dl>
+</body>
+</html>

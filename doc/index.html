@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html  PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+<title>RNP -- Rapid Numerical Prototyping</title>
+<style type="text/css">@import url(rnp.css);</style>
+</head>
+<body>
+
+
+<h1>RNP &mdash; Rapid Numerical Prototyping</h1>
+
+<p>A simple library for common numerical computations.</p>
+
+<p>The <a href="about.html">design rationale</a> behind the library was to make it maximally easy to use, with performance a secondary consideration.
+It turns out however, that for most high level algorithms, there is only one good way to implement them, so the performance tends to be quite good.</p>
+
+<h2>Status</h2>
+
+<p>Currently, RNP supports all common linear algebra operations typically used in the physical sciences.
+In this respect, RNP is currently feature complete (the target feature set does not include the TODO items marked below), but some interfaces are not finalized, certain parameters are not respected, and memory allocation is not optimal.</p>
+
+<h2>Documentation</h2>
+
+<p>Documentation for the different modules is listed below.</p>
+
+<ul>
+<li><a href="doc_io.html">IO</a></li>
+<li><a href="doc_random.html">Random</a></li>
+<li><a href="doc_tblas.html">TBLAS</a></li>
+<li><a href="doc_sparse.html">Sparse</a></li>
+<li><a href="doc_linsolve.html">LinearSolve</a></li>
+<li><a href="doc_zge.html">Eigensystems</a></li>
+<li><a href="doc_zgg.html">Generalized Eigensystems</a></li>
+<li><a href="doc_itersolve.html">Iterative Linear Solvers</a></li>
+<li><a href="doc_iterzgg.html">Iterative Generalized Eigensystems</a></li>
+<li>LeastSquares &ndash; TODO: Dense least squares/norm approximation</li>
+<li>SVD &ndash; TODO: Dense SVD</li>
+<li>Iterative SVD &ndash; TODO</li>
+<li>Integration &ndash; TODO</li>
+</ul>
+
+
+<p>Documentation for activities related to the library is listed below.</p>
+
+<ul>
+<li><a href="doc_compiling.html">Compilation and file dependencies</a></li>
+<li><a href="doc_porting.html">Porting to heavy duty numerical packages</a></li>
+</ul>
+
+
+<h2>Download</h2>
+
+<ul>
+<li><a href="rnp_20100116.zip">rnp-20100116</a> &ndash; Initial release.</li>
+</ul>
+
+
+<h2>FAQ</h2>
+
+<ul>
+<li><p>Are there specialized routines for symmetric or positive definite problems?</p>
+
+<p>No, not yet. Chances are you can find code on the Internet for symmetric routines, since those are far simpler.</p></li>
+<li><p>How do I invert a matrix?</p>
+
+<p>Perform a matrix solve with your matrix and use the identity matrix for the right hand side.
+A slightly more optimal way is to perform the factorization and invert the L and U factors yourself.
+Seriously, this is the best way. There is no built function since matrix solves are destructive, and the storage conventions depend on the application. You can write your own suitable wrapper for this if you really want it to be more convenient.</p></li>
+</ul>
+
+
+<h2>TODO</h2>
+
+<ul>
+<li>Ensure IterativeGeneralizedEigensolvers respect iteration limits and multiply limits.</li>
+<li>Improve tests.</li>
+</ul>
+
+
+<h2>License</h2>
+
+<p>I'm not big on keeping track of licenses, but I will do my best below.
+Since this library is intended for prototyping, I think it is unlikely anyone will have to bother with looking at licenses.</p>
+
+<p>The code contained in RNP is a mixture of code I wrote and code translated from other sources.
+Modules IO, Sparse, and the Jacobi eigenssolver are written by myself, and are in the public domain.
+Modules Random, most of TBLAS, LinearSolve, Eigensystems, and GeneralizedEigensystems are translated from BLAS/LAPACK, and are subject to its license. IterativeLinearSolvers and IterativeGeneralizedEigensystems are translated from Matlab/Fortran code by Martin van Gijzen, Peter Sonneveld, and Gerard L. G. Sleijpen, and are under the GNU General Public License version 2 or later.</p>
+
+<h2>Author/collector</h2>
+
+<p>This library is maintained by Victor Liu. Email is vee kay ell (three letters) at stanford dot edu.</p>
+</body>
+</html>

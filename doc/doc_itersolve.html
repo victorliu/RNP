@@ -1,0 +1,173 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html  PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+<title>RNP Documentation -- Iterative linear solvers</title>
+<style type="text/css">@import url(rnp.css);</style>
+</head>
+<body>
+
+
+<h1>Iterative linear solvers</h1>
+
+<p>This module contains several iterative linear solvers (typically used for sparse matrices).
+They all share a common interface.
+All functions are in namespace <code>RNP</code>.</p>
+
+<h2>Contents</h2>
+
+<ul>
+<li><a href="#RNP_IterativeLinSolveInterface">Iterative linear solver interface</a></li>
+<li><a href="#RNP_GMRES">GMRES</a></li>
+<li><a href="#RNP_IDRs">IDRs</a></li>
+<li><a href="#RNP_BiCGSTABl">BiCGSTABl</a></li>
+</ul>
+
+
+<hr />
+
+<h2>Iterative linear solver interface<a name="RNP_IterativeLinSolveInterface" /></h2>
+
+<p>All iterative linear solvers share a common interface.
+This makes it easy to swap solvers or use them interchangably as subunits of higher level algorithms.</p>
+
+<h3>Prototype</h3>
+
+<pre><code>struct LinearSolverWorkspace;
+struct LinearSolverParams;
+struct NAME_params;
+int NAME(
+    const size_t n,
+    void (*A)(const std::complex&lt;double&gt;*, std::complex&lt;double&gt;*, void*),
+    std::complex&lt;double&gt;* b,
+    std::complex&lt;double&gt;* x,
+    LinearSolverParams &amp;ls_params,
+    const NAME_params &amp;params,
+    LinearSolverWorkspace *workspace = NULL,
+    void *Adata = NULL,
+    void (*P)(std::complex&lt;double&gt;*, void*) = NULL,
+    void *Pdata = NULL
+);
+void NAME_alloc(size_t n, const NAME_params &amp;params, LinearSolverWorkspace *workspace);
+void NAME_free(size_t n, const NAME_params &amp;params, LinearSolverWorkspace *workspace);
+</code></pre>
+
+<p>Associated with each solver are specialized structures for selecting the solver parameters, as well as specific functions for managing workspaces.</p>
+
+<h3>Arguments:</h3>
+
+<dl>
+<dt>n</dt>
+<dd>Dimension of the problem; size of matrix <code>A</code>.</dd>
+<dt>A</dt>
+<dd>A function which multiplies the matrix <code>A</code> by the first argument
+and returns the result in the second. The second argument must
+be manually zeroed. The third parameter is user data, passed
+in through Adata.</dd>
+<dt>b</dt>
+<dd>RHS of the problem (assumed to be length n). Possibly overwritten on exit.</dd>
+<dt>x</dt>
+<dd>The solution vector is returned here (assumed to be length n).</dd>
+<dt>ls_params</dt>
+<dd>A parameter structure containing options common to all linear solvers.
+On exit, each field is overwritten with the actual details of the solve.
+More information about this is described below.</dd>
+<dt>params</dt>
+<dd>A parameter structure containing options specific to each solver.</dd>
+<dt>workspace</dt>
+<dd>The temporary workspace for the solver. Use the provided <code>NAME_alloc</code> and <code>NAME_free</code> functions to allocate the proper size space. This parameter can be NULL, in which case the solver automatically allocates and frees the space internally.</dd>
+<dt>Adata</dt>
+<dd>User data for function <code>A</code>.</dd>
+<dt>P</dt>
+<dd>A preconditioner which solves <code>P * y = x</code> for <code>y</code>, overwriting <code>x</code> with <code>y</code>, where <code>x</code> is the first argument. The second argument is user data which is passed in through Pdata.</dd>
+<dt>Pdata</dt>
+<dd>User data for function <code>B</code>.</dd>
+</dl>
+
+<h3>LinearSolverParams</h3>
+
+<p>A description of each field of this structure is given below.</p>
+
+<dl>
+<dt>max_iterations</dt>
+<dd>The maximum number of iterations allowed in the solve.
+Set to 0 to let the routine automatically select a reasonable default based on <code>n</code> and other parameters.
+On exit from the solver, this field is overwritten by the actual number of iterations required.
+The default value is 0.</dd>
+<dt>tol</dt>
+<dd>The tolerance of the residual norm required for termination.
+The residual norm must be <code>tol</code> times the norm of the RHS for successful termination of the solve.
+On exit, this field is overwritten by the actual ratio of the norm of the residual to the norm of the RHS.
+The default value is 1e-8;</dd>
+<dt>max_mult</dt>
+<dd>The maximum number of matrix-vector multiplies allowed.
+Specify 0 for unlimited.
+On exit, this field is overwritten by the actual number of matrix-vector multiplies performed.
+The default value is 0.</dd>
+<dt>x_initialized</dt>
+<dd>If true, the vector <code>x</code> is assumed to be a starting guess for the solve.
+If false, the vector <code>x</code> is overwritten with zeros.
+The default value is false.</dd>
+</dl>
+
+<hr />
+
+<h2>GMRES<a name="RNP_GMRES" /></h2>
+
+<p>This is an implementation of the Generalized Minimal Residual method.
+This method solves for the minimal residual in the Krylov subspace at each step of the solve.
+In doing so, it requires a substantial amount of storage space (this algorithm favors fast convergence in exchange for using a huge amount of memory).</p>
+
+<h3>GMRES_params</h3>
+
+<dl>
+<dt>m</dt>
+<dd>The maximum degree of minimum residual polynomial.
+The required workspace for GMRES is proportional to <code>m</code> (approximately <code>n*m</code>).
+The default value is 100.</dd>
+</dl>
+
+<hr />
+
+<h2>IDRs<a name="RNP_IDRs" /></h2>
+
+<p>This is an implementation of the Induced Dimension Reduction method IDR(s).
+When <code>s=1</code>, this method is roughly equivalent to Bi-CGSTAB.
+Increasing the parameter <code>s</code> trades off larger storage space for faster convergence.</p>
+
+<h3>IDRs_params</h3>
+
+<dl>
+<dt>s</dt>
+<dd>The dimension of the shadow space.
+The required workspace for IDRs is proportional to <code>s</code> (approximately <code>3*n*s</code>).
+The default value is 4.</dd>
+<dt>angle</dt>
+<dd>Minimum angle between subsequent Krylov vectors.
+The default value is 0.7.</dd>
+</dl>
+
+<hr />
+
+<h2>BiCGSTABl<a name="RNP_BiCGSTABl" /></h2>
+
+<p>This is an implementation of the Bi-conjugate Gradients Stabilized (l) method.
+When <code>l=1</code>, this method is equivalent to Bi-CGSTAB.
+Increasing the parameter <code>l</code> trades off larger storage space for faster convergence.</p>
+
+<h3>BiCGSTABl_params</h3>
+
+<dl>
+<dt>l</dt>
+<dd>Maximum degree of the Minimum Residual polynomial.
+The required workspace for BiCGSTABl is roughly proportional to <code>l</code> (goes as <code>3+2*(l+1)</code>).
+The default value is 4.</dd>
+<dt>delta</dt>
+<dd>Fraction of initial residual norm for which the reliable update strategy takes effect.
+The default value is 1e-2.</dd>
+<dt>angle</dt>
+<dd>Minimum angle between subsequent vectors.
+The default value is 0.7.</dd>
+</dl>
+</body>
+</html>
