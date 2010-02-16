@@ -42,6 +42,7 @@ Documentation for activities related to the library is listed below.
 
 ## Download
 
+* From now on, the code is [hosted on GitHub](http://github.com/victorliu/RNP). You can download the latest snapshot there.
 * [rnp-20100116](rnp_20100116.zip) - Initial release.
 
 ## FAQ
