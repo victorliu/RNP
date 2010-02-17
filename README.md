@@ -1,10 +1,3 @@
-% RNP -- Rapid Numerical Prototyping
-% Victor Liu (vkl@stanford.edu)
-% January 16, 2010
-<style type="text/css">
-@import url(rnp.css);
-</style>
-
 # RNP -- Rapid Numerical Prototyping
 
 A simple library for common numerical computations.
@@ -37,8 +30,8 @@ Documentation for the different modules is listed below. (Note that GitHub does 
 
 Documentation for activities related to the library is listed below.
 
-* [Compilation and file dependencies](doc_compiling.html)
-* [Porting to heavy duty numerical packages](doc_porting.html)
+* [Compilation and file dependencies](http://github.com/victorliu/RNP/tree/master/doc/doc_compiling.md)
+* [Porting to heavy duty numerical packages](http://github.com/victorliu/RNP/tree/master/doc/doc_porting.md)
 
 ## Download
 
