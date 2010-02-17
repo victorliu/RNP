@@ -19,17 +19,17 @@ In this respect, RNP is currently feature complete (the target feature set does 
 
 ## Documentation
 
-Documentation for the different modules is listed below.
+Documentation for the different modules is listed below. (Note that GitHub does not support the Discount Markdown extensions, so some of these pages will not render properly; view the actual HTML files for actual reference).
 
-* [IO](doc_io.html)
-* [Random](doc_random.html)
-* [TBLAS](doc_tblas.html)
-* [Sparse](doc_sparse.html)
-* [LinearSolve](doc_linsolve.html)
-* [Eigensystems](doc_zge.html)
-* [Generalized Eigensystems](doc_zgg.html)
-* [Iterative Linear Solvers](doc_itersolve.html)
-* [Iterative Generalized Eigensystems](doc_iterzgg.html)
+* [IO](http://github.com/victorliu/RNP/tree/master/doc/doc_io.md)
+* [Random](http://github.com/victorliu/RNP/tree/master/doc/doc_random.md)
+* [TBLAS](http://github.com/victorliu/RNP/tree/master/doc/doc_tblas.md)
+* [Sparse](http://github.com/victorliu/RNP/tree/master/doc/doc_sparse.md)
+* [LinearSolve](http://github.com/victorliu/RNP/tree/master/doc/doc_linsolve.md)
+* [Eigensystems](http://github.com/victorliu/RNP/tree/master/doc/doc_zge.md)
+* [Generalized Eigensystems](http://github.com/victorliu/RNP/tree/master/doc/doc_zgg.md)
+* [Iterative Linear Solvers](http://github.com/victorliu/RNP/tree/master/doc/doc_itersolve.md)
+* [Iterative Generalized Eigensystems](http://github.com/victorliu/RNP/tree/master/doc/doc_iterzgg.md)
 * LeastSquares - TODO: Dense least squares/norm approximation
 * SVD - TODO: Dense SVD
 * Iterative SVD - TODO
@@ -43,7 +43,6 @@ Documentation for activities related to the library is listed below.
 ## Download
 
 * From now on, the code is [hosted on GitHub](http://github.com/victorliu/RNP). You can download the latest snapshot there.
-* [rnp-20100116](rnp_20100116.zip) - Initial release.
 
 ## FAQ
 
