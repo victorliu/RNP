@@ -61,6 +61,8 @@ Documentation for activities related to the library is listed below.
 
 * Ensure IterativeGeneralizedEigensolvers respect iteration limits and multiply limits.
 * Improve tests.
+* Port some symmetric eigensolvers: zheev, dsyev, and PRIMME's JDQMR.
+* Port root-finding routines.
 
 ## License
 

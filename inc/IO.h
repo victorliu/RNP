@@ -33,7 +33,7 @@ public:
 	std::ostream& operator()(const std::complex<T> &val){
 		_NumberOutputter<T> outputter(os);
 #if defined(RNP_OUTPUT_MATHEMATICA)
-		if(val.real() != 0){
+		if(val.real() != 0 || 0 == val.imag()){
 			outputter(val.real());
 		}
 		if(val.imag() != 0){
@@ -49,7 +49,7 @@ public:
 			}
 		}
 #elif defined(RNP_OUTPUT_MATLAB)
-		if(val.real() != 0){
+		if(val.real() != 0 || 0 == val.imag()){
 			outputter(val.real());
 		}
 		if(val.imag() != 0){
