@@ -1,3 +1,8 @@
+#ifdef DEBUG_ZGG
+# include <iostream>
+# include "IO.h"
+#endif
+
 #include <limits>
 #include "TBLAS.h"
 #include "TLASupport.h"
@@ -918,6 +923,10 @@ static int zhgeqz_(char *job, char *compq, char *compz, size_t n,
 		RNP::TBLAS::SetMatrix<'F'>(n, n, std::complex<double>(0), std::complex<double>(1), &z[z_offset], ldz);
 	}
 
+#ifdef DEBUG_ZGG
+	std::cout << "q upon entering QZ iteration:" << std::endl;
+	RNP::IO::PrintMatrix(n,n,&q[q_offset],ldq) << std::endl;
+#endif
 	// Machine Constants
 	const int in = ihi+1 - ilo;
 	const double safmin = std::numeric_limits<double>::min();
@@ -1300,6 +1309,10 @@ L70_zhgeqz:
 		alpha[j] = h[j+j*ldh];
 		beta[j] = t[j+j*ldt];
 	}
+#ifdef DEBUG_ZGG
+	std::cout << "q at end of QZ iteration:" << std::endl;
+	RNP::IO::PrintMatrix(n,n,&q[q_offset],ldq) << std::endl;
+#endif
 	return 0;
 }
 
@@ -2398,14 +2411,11 @@ int RNP::GeneralizedSchurDecomposition(size_t n,
 		return 0;
     }
 
-/*     Get machine constants */
-
     const double eps = 2*std::numeric_limits<double>::epsilon();
     const double smlnum = sqrt(std::numeric_limits<double>::min()) / eps;
     const double bignum = 1. / smlnum;
 
-/*     Scale A if max element outside range [SMLNUM,BIGNUM] */
-
+	// Scale A if max element outside range [SMLNUM,BIGNUM]
 	RNP::TLASupport::CheapMatrixNorm<'M'>(n, n, &a[a_offset], lda, &anrm);
     ilascl = false;
     if (anrm > 0. && anrm < smlnum) {
@@ -2420,8 +2430,7 @@ int RNP::GeneralizedSchurDecomposition(size_t n,
 		RNP::TLASupport::RescaleMatrix<'G'>(0, 0, anrm, anrmto, n, n, &a[a_offset], lda);
     }
 
-/*     Scale B if max element outside range [SMLNUM,BIGNUM] */
-
+	// Scale B if max element outside range [SMLNUM,BIGNUM]
 	RNP::TLASupport::CheapMatrixNorm<'M'>(n, n, &b[b_offset], ldb, &bnrm);
     ilbscl = false;
     if (bnrm > 0. && bnrm < smlnum) {
@@ -2436,16 +2445,15 @@ int RNP::GeneralizedSchurDecomposition(size_t n,
 		RNP::TLASupport::RescaleMatrix<'G'>(0, 0, bnrm, bnrmto, n, n, &b[b_offset], ldb);
     }
 
-/*     Permute the matrix to make it more nearly triangular */
-/*     (Real Workspace: need 6*N) */
-
+	// Permute the matrix to make it more nearly triangular
+	// (Real Workspace: need 6*N)
     ileft = 1;
     iright = n + 1;
     irwrk = iright + n;
     zggbal_("P", n, &a[a_offset], lda, &b[b_offset], ldb, &ilo, &ihi, &rwork[ileft], &rwork[iright], &rwork[irwrk]);
 
-/*     Reduce B to triangular form (QR decomposition of B) */
-/*     (Complex Workspace: need N, prefer N*NB) */
+	// Reduce B to triangular form (QR decomposition of B)
+	// (Complex Workspace: need N, prefer N*NB)
 
     irows = ihi + 1 - ilo;
     icols = n + 1 - ilo;
@@ -2453,16 +2461,15 @@ int RNP::GeneralizedSchurDecomposition(size_t n,
     iwrk = itau + irows;
 	RNP::TLASupport::QRFactorization(irows, icols, &b[ilo + ilo * ldb], ldb, &work[itau], &work[iwrk]);
 
-/*     Apply the orthogonal transformation to matrix A */
-/*     (Complex Workspace: need N, prefer N*NB) */
+	// Apply the orthogonal transformation to matrix A
+	// (Complex Workspace: need N, prefer N*NB)
 
 	RNP::TLASupport::ApplyOrthognalMatrixFromElementaryReflectors<'L','C'>(
 		irows, icols, irows, &b[ilo + ilo * ldb], ldb, &
 		work[itau], &a[ilo + ilo * lda], lda, &work[iwrk]);
 
-/*     Initialize VSL */
-/*     (Complex Workspace: need N, prefer N*NB) */
-
+	// Initialize VSL
+	// (Complex Workspace: need N, prefer N*NB)
     if (ilvsl) {
 		RNP::TBLAS::SetMatrix<'F'>(n, n, std::complex<double>(0), std::complex<double>(1), &vsl[vsl_offset], ldvsl);
 		if (irows > 1) {
@@ -2471,15 +2478,12 @@ int RNP::GeneralizedSchurDecomposition(size_t n,
 		RNP::TLASupport::GenerateOrthognalMatrixFromElementaryReflectors(irows, irows, irows, &vsl[ilo + ilo * ldvsl], ldvsl, &work[itau], &work[iwrk]);
     }
 
-/*     Initialize VSR */
-
-    if (ilvsr) {
+    if (ilvsr) { // Initialize VSR
 		RNP::TBLAS::SetMatrix<'F'>(n, n, std::complex<double>(0), std::complex<double>(1), &vsr[vsr_offset], ldvsr);
     }
 
-/*     Reduce to generalized Hessenberg form */
-/*     (Workspace: none needed) */
-
+	// Reduce to generalized Hessenberg form
+	// (Workspace: none needed)
 	if(ilvsl){
 		if(ilvsr){
 			RNP::TLASupport::GeneralizedHessenbergReduction<'V','V'>(n, ilo-1, ihi-1, &a[a_offset], lda, &b[b_offset], ldb, &vsl[vsl_offset], ldvsl, &vsr[vsr_offset], ldvsr);
@@ -2493,10 +2497,10 @@ int RNP::GeneralizedSchurDecomposition(size_t n,
 			RNP::TLASupport::GeneralizedHessenbergReduction<'N','N'>(n, ilo-1, ihi-1, &a[a_offset], lda, &b[b_offset], ldb, &vsl[vsl_offset], ldvsl, &vsr[vsr_offset], ldvsr);
 		}
 	}
-/*     Perform QZ algorithm, computing Schur vectors if desired */
-/*     (Complex Workspace: need N) */
-/*     (Real Workspace: need N) */
 
+	// Perform QZ algorithm, computing Schur vectors if desired
+	// (Complex Workspace: need N)
+	// (Real Workspace: need N)
     iwrk = itau;
 	char jobvl[1], jobvr[1];
 	if(ilvsl){
@@ -2524,9 +2528,8 @@ int RNP::GeneralizedSchurDecomposition(size_t n,
 		return ierr;
     }
     
-/*     Apply back-permutation to VSL and VSR */
-/*     (Workspace: none needed) */
-
+	// Apply back-permutation to VSL and VSR
+	// (Workspace: none needed)
     if (ilvsl) {
 		zggbak_("P", "L", n, ilo, ihi, &rwork[ileft], &rwork[iright], n, &vsl[vsl_offset], ldvsl);
     }
@@ -2534,8 +2537,7 @@ int RNP::GeneralizedSchurDecomposition(size_t n,
 		zggbak_("P", "R", n, ilo, ihi, &rwork[ileft], &rwork[iright], n, &vsr[vsr_offset], ldvsr);
     }
 
-/*     Undo scaling */
-
+	// Undo scaling
     if (ilascl) {
 		RNP::TLASupport::RescaleMatrix<'U'>(0, 0, anrmto, anrm, n, n, &a[a_offset], lda);
 		RNP::TLASupport::RescaleMatrix<'G'>(0, 0, anrmto, anrm, n, 1, &alpha[1], n);
