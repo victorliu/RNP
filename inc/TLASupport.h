@@ -758,13 +758,28 @@ void GenerateElementaryReflectorPositive(size_t n, T *alpha, T *x, size_t incx, 
 			//alphr = alphi * (alphi / alpha->real()) + xnorm * (xnorm / alpha->real());
 			//*tau = std::complex<double>(alphr / beta, -alphi / beta);
 			//*alpha = std::complex<double>(-alphr, alphi);
-			real_type alphr = alpha->real();
+			
+			// Equivalent to:
+			// alphr = -( alphi * (alphi / alpha->real()) + xnorm * (xnorm / alpha->real()) );
+			// alpha = std::complex<double>(alphr, alphi);
+			// tau = -alpha/beta
+			//
+			// alphr = alpha->real();
+			// temp = alphi * (alphi / alphr) + xnorm * (xnorm / alphr);
+			// alpha = std::complex<double>(alphr-(temp+alphr), alphi);
+			// tau = -alpha/beta
+			//
+			// Note that: temp+alphr = alphr*[(alpha/alphr)^2 + (xnorm/alphr)^2]
+			// 
+			real_type alphr = RNP::TBLAS::_RealOrComplexChooser<T>::_real(*alpha);
 			real_type ana = RNP::TBLAS::_RealOrComplexChooser<T>::_abs((*alpha / alphr));
 			xnorm *= (xnorm/alphr);
-			*alpha -= ((alphr*ana)*ana + xnorm);
+			*alpha -= (alphr*ana)*ana;
+			*alpha -= xnorm;
 		}
 		*tau = -*alpha/beta;
-		RNP::TBLAS::Scale(n-1, (T(1) / *alpha), x, incx);
+		*alpha = RNP::TLASupport::ComplexDivide(T(1), *alpha);
+		RNP::TBLAS::Scale(n-1, (*alpha), x, incx);
 
 		// If beta is subnormal, it may lose relative accuracy
 		while(knt --> 0){
