@@ -10,6 +10,11 @@
 Many of the routines are taken directly from Fortran packages, with the interfaces kept fairly close to the original, so porting to an industrial strength, optimized numerical library should be straightforward.
 Below is listed the original libraries from which each module originated.
 
+In many instances, simply optimizing the TBLAS layer should afford substantial improvements in performance.
+This can be done relatively simply by providing explicit template specializations of TBLAS functions.
+Doing this will not achieve performance on par with optimized LAPACK libraries since all blocking has been stripped from the LAPACK routines.
+Future developments may restore some blocking functionality.
+
 ## Library origins
 
 * IO - None.

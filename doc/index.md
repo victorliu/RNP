@@ -63,6 +63,8 @@ Documentation for activities related to the library is listed below.
 * Improve tests.
 * Port some symmetric eigensolvers: zheev, dsyev, and PRIMME's JDQMR.
 * Port root-finding routines.
+* Rework JDQZ into its own namespace.
+* Add constrained JDQZ (linear homogeneous constraints).
 
 ## License
 

@@ -53,6 +53,9 @@ Documentation for activities related to the library is listed below.
 
 * Ensure IterativeGeneralizedEigensolvers respect iteration limits and multiply limits.
 * Improve tests.
+* Rework JDQZ into its own namespace.
+* Add constrained JDQZ (linear homogeneous constraints).
+* Port some Hermitian LAPACK routines.
 
 ## License
 
