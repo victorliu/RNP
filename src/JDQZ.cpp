@@ -500,8 +500,8 @@ int RNP::JDQZ(
 		}
 		ModifiedGramSchmidt(n, k, q, &v[0+j*n]); // this step was not mentioned in the paper
 #ifdef DEBUG_JDQZ
-			std::cout << "projected v:" << std::endl;
-			RNP::IO::PrintVector(n, &v[0+j*n]) << std::endl;
+		std::cout << "projected v:" << std::endl;
+		RNP::IO::PrintVector(n, &v[0+j*n]) << std::endl;
 #endif
 		if(params.testspace == 1){
 			// Standard Petrov
