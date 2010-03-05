@@ -126,7 +126,7 @@ The fields in the parameter structure are described below.
 	Specifies the bounds on the dimension of the search space.
 	This parameter controls the amount of temporary storage required by the algorithm.
 	If 0 is specified for either bound, a default value is computed based on the desired `kmax`.
-	Tehd default values are both 0.
+	The default values are both 0.
 =max_iters=
 	The maximum number of iterations allowed in the JDQZ algorithm.
 =max_mult=
