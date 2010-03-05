@@ -1,3 +1,8 @@
+#ifdef DEBUG_JDQZ
+# include <iostream>
+# include "IO.h"
+#endif
+
 #include <cmath>
 #include <complex>
 #include <limits>
@@ -27,7 +32,7 @@ bool RNP::JDQZSort_MaxAbs(const std::complex<double> &n1, const std::complex<dou
 	return std::abs(n1/d1) > std::abs(n2/d2);
 }
 bool RNP::JDQZSort_MinReal(const std::complex<double> &n1, const std::complex<double> &d1, const std::complex<double> &n2, const std::complex<double> &d2, void *data){
-	return (n1/d1).real() > (n2/d2).real();
+	return (n1/d1).real() < (n2/d2).real();
 }
 bool RNP::JDQZSort_MinAbs(const std::complex<double> &n1, const std::complex<double> &d1, const std::complex<double> &n2, const std::complex<double> &d2, void *data){
 	return std::abs(n1/d1) < std::abs(n2/d2);
@@ -121,7 +126,7 @@ void QZSort(size_t k,
 //   w is a vector of length n
 // Output:
 //   w is orthogonalized against each column of v, and optionally normalized
-int ModifiedGramSchmidt(size_t n, size_t k, const std::complex<double> *v, std::complex<double> *w, bool normalize_w = true){
+int ModifiedGramSchmidt(size_t n, size_t k, const std::complex<double> *v, std::complex<double> *w = NULL, bool normalize_w = true){
 	double s1 = RNP::TBLAS::Norm2(n, w, 1);
 	int info = 0;
 	for(size_t i = 0; i < k; ++i){
@@ -162,17 +167,19 @@ struct jdqz_op_data{
 // Computes y = beta*Ax - alpha*Bx
 void jdqz_op(const std::complex<double> *x, std::complex<double> *y, void *_data){
 	jdqz_op_data *data = reinterpret_cast<jdqz_op_data*>(_data);
+	/*
 	if(&RNP::JDQZ_Identity == data->Bop){
 		// B is identity, so we only need to comput y = beta*Ax
 		data->Aop(x, y, data->Adata);
 		RNP::TBLAS::Scale(data->n, data->beta, y, 1);
 	}else{
+	*/
 		data->Aop(x, data->work, data->Adata);
 		data->Bop(x, y, data->Bdata);
 		for(size_t i = 0; i < data->n; ++i){
 			y[i] = data->beta * data->work[i] - data->alpha * y[i];
 		}
-	}
+	//}
 }
 
 void RNP::JDQZ_Identity(const std::complex<double> *x, std::complex<double> *y, void *_data){
@@ -260,6 +267,17 @@ void jdqz_pick_search_space(size_t k, size_t &jmin, size_t &jmax){
 		if(jmax < 20){
 			jmax = 20;
 		}
+	}
+}
+
+void jdqz_rand_vec(size_t n, std::complex<double> *x, size_t incx){
+	//int iseed[4] = { 3,3,1966,29 };
+	int *iseed = NULL;
+	while(n --> 0){
+		double ra[1];
+		RNP::Random::RandomRealsUniform01(1, ra, iseed);
+		*x = 2*ra[0]-1;
+		x += incx;
 	}
 }
 
@@ -429,12 +447,11 @@ int RNP::JDQZ(
 	size_t j = 0;
 	size_t k = 0;
 
-	int iseed[4] = { 3,3,1966,29 };
-
 	while(k < kmax && step < params.max_iters){
 		++step;
 		++solvestep;
 		if(j == 0){ // set v to initial value v0
+			/*
 			for(size_t i = 0; i < n; ++i){
 				double ra[2];
 				RNP::Random::RandomRealsUniform01(2, ra, iseed);
@@ -445,21 +462,47 @@ int RNP::JDQZ(
 				RNP::Random::RandomRealsUniform01(2, ra, iseed);
 				w[i+0*n] = 2*ra[0]-1;
 			}
+			*/
+			jdqz_rand_vec(n, &v[0+0*n], 1);
+			jdqz_rand_vec(n, &w[0+0*n], 1);
+#ifdef DEBUG_JDQZ
+			std::cout << "initial v:" << std::endl;
+			RNP::IO::PrintVector(n, &v[0+0*n]) << std::endl;
+#endif
 		}else{
 			size_t linsolve_max_mult = params.max_mult;
-			double deps = pow(2.0, -solvestep); // stopping tolerance for the solve
+			double solve_eps = pow(2.0, -solvestep); // stopping tolerance for the solve
 			precon_data.nq = k+1;
 			if(j < jmin){
 				linsolve_max_mult = 1;
 			}
 			op_data.alpha = zalpha;
 			op_data.beta = zbeta;
-			params.linear_solver(n, &jdqz_op, (void*)&op_data, &v[0+j*n], rhs, deps, linsolve_max_mult, &jdqz_preconditioner, (void*)&precon_data, params.linear_solver_data);
+			params.linear_solver(n, &jdqz_op, (void*)&op_data, &v[0+j*n], rhs, solve_eps, linsolve_max_mult, &jdqz_preconditioner, (void*)&precon_data, params.linear_solver_data);
+#ifdef DEBUG_JDQZ
+			std::cout << "solution of JD correction equation:" << std::endl;
+			RNP::IO::PrintVector(n, &v[0+j*n]) << std::endl;
+#endif
 		}
 		
 		// The projected problem
-		ModifiedGramSchmidt(n, j, v, &v[0+j*n]); // v = mgs(V,v); v = v/|v|
+		//ModifiedGramSchmidt(n, j, v, &v[0+j*n]); // v = mgs(V,v); v = v/|v|
+		ModifiedGramSchmidt(n, j, v, &v[0+j*n], false); // v = mgs(V,v); v = v/|v|
+		{ // added by vkl 2010-03-04, trying to fix inability to solve A=B=I
+			// Sometimes, &v[0+j*n] can be identically zero, if for example, we hit an eigenvector exactly
+			// In such cases, we need to set a new random vector
+			double vnrm;
+			while(0 == (vnrm = RNP::TBLAS::Norm2(n, &v[0+j*n], 1))){
+				jdqz_rand_vec(n, &v[0+j*n], 1);
+				ModifiedGramSchmidt(n, j, v, &v[0+j*n], false);
+			}
+			RNP::TBLAS::Scale(n, 1/vnrm, &v[0+j*n], 1);
+		}
 		ModifiedGramSchmidt(n, k, q, &v[0+j*n]); // this step was not mentioned in the paper
+#ifdef DEBUG_JDQZ
+			std::cout << "projected v:" << std::endl;
+			RNP::IO::PrintVector(n, &v[0+j*n]) << std::endl;
+#endif
 		if(params.testspace == 1){
 			// Standard Petrov
 			// testspace = alpha'*Av + beta'*Bv
@@ -508,7 +551,27 @@ int RNP::JDQZ(
 			}
 		}
 		//RNP::GeneralizedSchurDecomposition(j, zma, jmax, zmb, jmax, alpha, beta, vsl, jmax, vsr, jmax, zwork, rwork);
+#ifdef DEBUG_JDQZ
+		std::cout << "zma:" << std::endl;
+		RNP::IO::PrintMatrix(j, j, zma, jmax) << std::endl;
+		std::cout << "zmb:" << std::endl;
+		RNP::IO::PrintMatrix(j, j, zmb, jmax) << std::endl;
+#endif
 		RNP::GeneralizedSchurDecomposition(j, zma, jmax, zmb, jmax, aconv, bconv, vsl, jmax, vsr, jmax, zwork, rwork);
+#ifdef DEBUG_JDQZ
+		std::cout << "post-Schur zma:" << std::endl;
+		RNP::IO::PrintMatrix(j, j, zma, jmax) << std::endl;
+		std::cout << "post-Schur zmb:" << std::endl;
+		RNP::IO::PrintMatrix(j, j, zmb, jmax) << std::endl;
+		std::cout << "aconv:" << std::endl;
+		RNP::IO::PrintVector(j, aconv) << std::endl;
+		std::cout << "bconv:" << std::endl;
+		RNP::IO::PrintVector(j, bconv) << std::endl;
+		std::cout << "vsl:" << std::endl;
+		RNP::IO::PrintMatrix(j, j, vsl, jmax) << std::endl;
+		std::cout << "vsr:" << std::endl;
+		RNP::IO::PrintMatrix(j, j, vsr, jmax) << std::endl;
+#endif
 		
 		bool found = true;
 		while(found){
@@ -518,6 +581,9 @@ int RNP::JDQZ(
 			zbeta = zmb[0];
 			evcond = sqrt(std::norm(zalpha) + std::norm(zbeta));
 
+#ifdef DEBUG_JDQZ
+			std::cout << "evcond = " << evcond << std::endl;
+#endif
 			// compute new q
 			RNP::TBLAS::MultMV<'N'>(n, j, 1., v, n, vsr, 1, 0., &q[0+k*n], 1);
 			ModifiedGramSchmidt(n, k, q, &q[0+k*n]);
@@ -539,14 +605,25 @@ int RNP::JDQZ(
 					invqkz[ii+jj*jmax] = mqkz[ii+jj*jmax];
 				}
 			}
+#ifdef DEBUG_JDQZ
+			std::cout << "invqkz:" << std::endl;
+			RNP::IO::PrintMatrix(k+1, k+1, invqkz, jmax) << std::endl;
+#endif
 			RNP::TLASupport::LUDecomposition(k+1, k+1, invqkz, jmax, ipivqkz);
 
 			// compute new (right) residual= beta Aq - alpha Bq and orthogonalize this vector on Z.
 			op_data.alpha = zalpha;
 			op_data.beta = zbeta;
 			jdqz_op(&q[0+k*n], rhs, &op_data);
+#ifdef DEBUG_JDQZ
+			std::cout << "new rhs:" << std::endl;
+			RNP::IO::PrintVector(n, rhs) << std::endl;
+#endif
 			ModifiedGramSchmidt(n, k, z, rhs, false);
 			double rnrm = RNP::TBLAS::Norm2(n, rhs, 1) / evcond;
+#ifdef DEBUG_JDQZ
+			std::cout << "zalpha = " << zalpha << ", zbeta = " << zbeta << ", rnrm = " << rnrm << std::endl;
+#endif
 			if(rnrm < params.lock && ok){
 				targeta = zalpha;
 				targetb = zbeta;
@@ -558,6 +635,10 @@ int RNP::JDQZ(
 				beta[k] = zbeta;
 				// increase the number of found evs by 1
 				++k;
+#ifdef DEBUG_JDQZ
+				std::cout << "found eigenvalue: " << zalpha << "/" << zbeta << std::endl;
+				std::cout << "k = " << k << std::endl;
+#endif
 				solvestep = 0;
 				if(k == kmax){
 					break;
@@ -599,7 +680,6 @@ int RNP::JDQZ(
 	}
 
 	// Did enough eigenpairs converge?
-	kmax = k;
 	if(NULL != eivec){
 		// Compute the Schur matrices if the eigenvectors are
 		// wanted, work(1,temp) is used for temporary storage
@@ -633,7 +713,7 @@ int RNP::JDQZ(
 		RNP::JDQZ_free(n, kmax, params, _work);
 		delete _work;
 	}
-	return 0;
+	return kmax;
 }
 
 
