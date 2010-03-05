@@ -28,6 +28,8 @@ Functions and adapters are provided for using the iterative solvers in RNP.
 
 Preconditioning is optional but highly recommended as it vastly improves the convergence speed.
 
+Returns the number of converged eigenpairs.
+
 ### Prototype
 
 	int JDQZ(
