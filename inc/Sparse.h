@@ -3,6 +3,7 @@
 
 #include <memory>
 #include <map>
+#include <complex>
 
 // Preprocessor flags:
 //   RNP_SPARSE_USE_IO
@@ -12,18 +13,23 @@ namespace Sparse{
 
 template <typename T>
 struct TCCSMatrix{
-	int n;
-	int *colptr;
+	int m,n;
+	int *colptr; // points to start of columns in values
 	int *rowind;
 	T *values;
 
-	TCCSMatrix():n(0),colptr(NULL),rowind(NULL),values(NULL){}
-	TCCSMatrix(size_t N, size_t nnz):n(N),colptr(NULL),rowind(NULL),values(NULL){
+	TCCSMatrix():m(0),n(0),colptr(NULL),rowind(NULL),values(NULL){}
+	TCCSMatrix(size_t N, size_t nnz):m(N),n(N),colptr(NULL),rowind(NULL),values(NULL){
 		values = new T[nnz];
 		colptr = new int[n+1];
 		rowind = new int[nnz];
 	}
-	TCCSMatrix(const TCCSMatrix &M):n(M.n),colptr(NULL),rowind(NULL),values(NULL){
+	TCCSMatrix(size_t M, size_t N, size_t nnz):m(M),n(N),colptr(NULL),rowind(NULL),values(NULL){
+		values = new T[nnz];
+		colptr = new int[n+1];
+		rowind = new int[nnz];
+	}
+	TCCSMatrix(const TCCSMatrix &M):m(M.m),n(M.n),colptr(NULL),rowind(NULL),values(NULL){
 		int nnz = M.colptr[M.n];
 		values = new T[nnz];
 		colptr = new int[n+1];
@@ -46,7 +52,29 @@ struct TCCSMatrix{
 	// Assumes that entries contains at least one element per column.
 	// Assumes all indexes in entries is consistent with the r and c given.
 	// Assumes that flags is set consistent with entries.
-	TCCSMatrix(size_t N, const entry_map_t &entries):n(N){
+	TCCSMatrix(size_t M, size_t N, const entry_map_t &entries):m(M),n(N){
+		size_t nnz = entries.size();
+		values = new T[nnz];
+		colptr = new int[n+1];
+		rowind = new int[nnz];
+		
+		size_t ip = 0;
+		int prevcol = 0;
+		colptr[0] = 0;
+		for(typename entry_map_t::const_iterator i = entries.begin(); i != entries.end(); ++i){
+			int col = i->first.second;
+			rowind[ip] = i->first.first;
+			values[ip] = i->second;
+			
+			++ip;
+			if(prevcol != col){
+				prevcol = col;
+				colptr[col] = ip-1;
+			}
+		}
+		colptr[n] = nnz; // do this at the end in case entries was bad, at least this is correct
+	}
+	TCCSMatrix(size_t N, const entry_map_t &entries):m(N),n(N){
 		size_t nnz = entries.size();
 		values = new T[nnz];
 		colptr = new int[n+1];
@@ -95,25 +123,30 @@ struct TCCSMatrix{
 
 template <typename T>
 struct TCRSMatrix{
-	int n;
+	int m,n;
 	int *colind;
 	int *rowptr;
 	T *values;
 
-	TCRSMatrix():n(0),colind(NULL),rowptr(NULL),values(NULL){}
-	TCRSMatrix(size_t N, size_t nnz):n(N),colind(NULL),rowptr(NULL),values(NULL){
-		rowptr = new int[n+1];
+	TCRSMatrix():m(0),n(0),colind(NULL),rowptr(NULL),values(NULL){}
+	TCRSMatrix(size_t M, size_t N, size_t nnz):m(M),n(N),colind(NULL),rowptr(NULL),values(NULL){
+		rowptr = new int[m+1];
 		values = new T[nnz];
 		colind = new int[nnz];
 	}
-	TCRSMatrix(const TCRSMatrix &M):n(M.n),colind(NULL),rowptr(NULL),values(NULL){
-		int nnz = M.rowptr[M.n];
+	TCRSMatrix(size_t N, size_t nnz):m(N),n(N),colind(NULL),rowptr(NULL),values(NULL){
+		rowptr = new int[m+1];
 		values = new T[nnz];
 		colind = new int[nnz];
-		rowptr = new int[n+1];
+	}
+	TCRSMatrix(const TCRSMatrix &M):m(M.m),n(M.n),colind(NULL),rowptr(NULL),values(NULL){
+		int nnz = M.rowptr[m];
+		values = new T[nnz];
+		colind = new int[nnz];
+		rowptr = new int[m+1];
 		
 		std::uninitialized_copy(M.colind, M.colind+nnz, colind);
-		std::uninitialized_copy(M.rowptr, M.rowptr+n+1, rowptr);
+		std::uninitialized_copy(M.rowptr, M.rowptr+m+1, rowptr);
 		std::uninitialized_copy(M.values, M.values+nnz, values);
 	}
 	
@@ -129,10 +162,10 @@ struct TCRSMatrix{
 	// Assumes that entries contains at least one element per column.
 	// Assumes all indexes in entries is consistent with the r and c given.
 	// Assumes that flags is set consistent with entries.
-	TCRSMatrix(size_t N, const entry_map_t &entries):n(N){
+	TCRSMatrix(size_t N, const entry_map_t &entries):m(N),n(N){
 		size_t nnz = entries.size();
 		values = new T[nnz];
-		rowptr = new int[n+1];
+		rowptr = new int[m+1];
 		colind = new int[nnz];
 		
 		size_t ip = 0;
@@ -149,7 +182,29 @@ struct TCRSMatrix{
 				rowptr[row] = ip-1;
 			}
 		}
-		rowptr[n] = nnz; // do this at the end in case entries was bad, at least this is correct
+		rowptr[m] = nnz; // do this at the end in case entries was bad, at least this is correct
+	}
+	TCRSMatrix(size_t M, size_t N, const entry_map_t &entries):m(M),n(N){
+		size_t nnz = entries.size();
+		values = new T[nnz];
+		rowptr = new int[m+1];
+		colind = new int[nnz];
+		
+		size_t ip = 0;
+		int prevrow = 0;
+		rowptr[0] = 0;
+		for(typename entry_map_t::const_iterator i = entries.begin(); i != entries.end(); ++i){
+			int row = i->first.first;
+			colind[ip] = i->first.second;
+			values[ip] = i->second;
+			
+			++ip;
+			if(prevrow != row){
+				prevrow = row;
+				rowptr[row] = ip-1;
+			}
+		}
+		rowptr[m] = nnz; // do this at the end in case entries was bad, at least this is correct
 	}
 	TCRSMatrix& operator=(const TCRSMatrix &M){
 		if(NULL != colind){ delete [] colind; }
@@ -176,38 +231,98 @@ struct TCRSMatrix{
 	}
 };
 
+// Classes to differentiate complex types
 template <class T>
-void MultMV(
-	const TCCSMatrix<T> &A, const T *X, T *Y,
-	const T &scale_AX = T(1),
-	const T &scale_Y = T(0)
-){
-	for(int j = 0; j < A.n; j++){
-		Y[j] *= scale_Y;
-	}
-	for(int j = 0; j < A.n; j++){
-		for(int ip = A.colptr[j]; ip < A.colptr[j+1]; ip++){
-			int i = A.rowind[ip];
-			Y[i] += scale_AX*X[j]*A.values[ip];
-		}
-	}
-}
+struct _RealOrComplexChooser{
+	typedef T value_type;
+	typedef T real_type;
 
+	inline static value_type _conj(const value_type &v){ return v; }
+};
 template <class T>
-void MultMV(
-	const TCRSMatrix<T> &A, const T *X, T *Y,
-	const T &scale_AX = T(1),
-	const T &scale_Y = T(0)
-){
-	for(int i = 0; i < A.n; i++){
-		T sum = 0;
-		for(int jp = A.rowptr[i]; jp < A.rowptr[i+1]; jp++){
-			int j = A.colind[jp];
-			sum += scale_AX*X[j]*A.values[jp];
+struct _RealOrComplexChooser<std::complex<T> >{
+	typedef std::complex<T> value_type;
+	typedef typename std::complex<T>::value_type real_type;
+
+	inline static value_type _conj(const value_type &v){ using namespace std; return conj(v); }
+};
+
+template <char trans='N'>
+struct MultMV{
+	template <class T>
+	MultMV(
+		const TCCSMatrix<T> &A, const T *X, T *Y,
+		const T &scale_AX = T(1),
+		const T &scale_Y = T(0)
+	){
+		if('T' == trans){
+			for(int i = 0; i < A.n; i++){
+				T sum = 0;
+				for(int jp = A.colptr[i]; jp < A.colptr[i+1]; jp++){
+					int j = A.rowind[jp];
+					sum += scale_AX*X[j]*A.values[jp];
+				}
+				Y[i] = scale_Y*Y[i] + scale_AX*sum;
+			}
+		}else if('C' == trans){
+			for(int i = 0; i < A.n; i++){
+				T sum = 0;
+				for(int jp = A.colptr[i]; jp < A.colptr[i+1]; jp++){
+					int j = A.rowind[jp];
+					sum += scale_AX*X[j]*_RealOrComplexChooser<T>::_conj(A.values[jp]);
+				}
+				Y[i] = scale_Y*Y[i] + scale_AX*sum;
+			}
+		}else{
+			for(int j = 0; j < A.n; j++){
+				Y[j] *= scale_Y;
+			}
+			for(int j = 0; j < A.n; j++){
+				for(int ip = A.colptr[j]; ip < A.colptr[j+1]; ip++){
+					int i = A.rowind[ip];
+					Y[i] += scale_AX*X[j]*A.values[ip];
+				}
+			}
 		}
-		Y[i] = scale_Y*Y[i] + scale_AX*sum;
 	}
-}
+	template <class T>
+	MultMV(
+		const TCRSMatrix<T> &A, const T *X, T *Y,
+		const T &scale_AX = T(1),
+		const T &scale_Y = T(0)
+	){
+		if('T' == trans){
+			for(int j = 0; j < A.n; j++){
+				Y[j] *= scale_Y;
+			}
+			for(int j = 0; j < A.m; j++){
+				for(int ip = A.rowptr[j]; ip < A.rowptr[j+1]; ip++){
+					int i = A.colind[ip];
+					Y[i] += scale_AX*X[j]*A.values[ip];
+				}
+			}
+		}else if('C' == trans){
+			for(int j = 0; j < A.n; j++){
+				Y[j] *= scale_Y;
+			}
+			for(int j = 0; j < A.m; j++){
+				for(int ip = A.rowptr[j]; ip < A.rowptr[j+1]; ip++){
+					int i = A.colind[ip];
+					Y[i] += scale_AX*X[j]*_RealOrComplexChooser<T>::_conj(A.values[ip]);
+				}
+			}
+		}else{
+			for(int i = 0; i < A.m; i++){
+				T sum = 0;
+				for(int jp = A.rowptr[i]; jp < A.rowptr[i+1]; jp++){
+					int j = A.colind[jp];
+					sum += scale_AX*X[j]*A.values[jp];
+				}
+				Y[i] = scale_Y*Y[i] + scale_AX*sum;
+			}
+		}
+	}
+};
 
 #if defined(RNP_SPARSE_USE_IO)
 
@@ -216,7 +331,7 @@ void MultMV(
 template <class T>
 std::ostream& PrintSparseMatrix(const TCCSMatrix<T> &A, std::ostream &os = std::cout){
 	#ifdef RNP_OUTPUT_MATHEMATICA
-	os << "{";
+	os << "SparseArray[{";
 	for(int j = 0; j < (int)A.n; j++){
 		for(int ip = A.colptr[j]; ip < A.colptr[j+1]; ip++){
 			int i = A.rowind[ip];
@@ -225,7 +340,7 @@ std::ostream& PrintSparseMatrix(const TCCSMatrix<T> &A, std::ostream &os = std::
 			os << ", ";
 		}
 	}
-	os << "{_, _} -> 0}";
+	os << "{_, _} -> 0}]";
 	#endif
 	#ifdef RNP_OUTPUT_MATLAB
 	os << "spconvert([";
@@ -244,8 +359,8 @@ std::ostream& PrintSparseMatrix(const TCCSMatrix<T> &A, std::ostream &os = std::
 template <class T>
 std::ostream& PrintSparseMatrix(const TCRSMatrix<T> &A, std::ostream &os = std::cout){
 	#ifdef RNP_OUTPUT_MATHEMATICA
-	os << "{";
-	for(int i = 0; i < (int)A.n; i++){
+	os << "SparseArray[{";
+	for(int i = 0; i < (int)A.m; i++){
 		for(int jp = A.rowptr[i]; jp < A.rowptr[i+1]; jp++){
 			int j = A.colind[jp];
 			os << "{" << i+1 << ", " << j+1 << "} -> ";
@@ -253,11 +368,11 @@ std::ostream& PrintSparseMatrix(const TCRSMatrix<T> &A, std::ostream &os = std::
 			os << ", ";
 		}
 	}
-	os << "{_, _} -> 0}";
+	os << "{_, _} -> 0}]";
 	#endif
 	#ifdef RNP_OUTPUT_MATLAB
 	os << "spconvert([";
-	for(int i = 0; i < (int)A.n; i++){
+	for(int i = 0; i < (int)A.m; i++){
 		for(int jp = A.colptr[i]; jp < A.colptr[i+1]; jp++){
 			int j = A.rowind[jp];
 			os << i+1 << "\t" << j+1 << "\t";
