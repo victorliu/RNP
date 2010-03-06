@@ -23,7 +23,7 @@ Documentation for the different modules is listed below. (Note that GitHub does 
 * [Generalized Eigensystems](http://github.com/victorliu/RNP/tree/master/doc/doc_zgg.md)
 * [Iterative Linear Solvers](http://github.com/victorliu/RNP/tree/master/doc/doc_itersolve.md)
 * [Iterative Generalized Eigensystems](http://github.com/victorliu/RNP/tree/master/doc/doc_iterzgg.md)
-* LeastSquares - TODO: Dense least squares/norm approximation
+* [LeastSquares](http://github.com/victorliu/RNP/tree/master/doc/doc_leastsquares.md) - TODO: Dense least squares/norm approximation
 * SVD - TODO: Dense SVD
 * Iterative SVD - TODO
 * Integration - TODO
