@@ -49,12 +49,16 @@ Documentation for activities related to the library is listed below.
   A slightly more optimal way is to perform the factorization and invert the L and U factors yourself.
   Seriously, this is the best way. There is no built function since matrix solves are destructive, and the storage conventions depend on the application. You can write your own suitable wrapper for this if you really want it to be more convenient.
 
+* How do I compile the documentation?
+
+  You have to use the [discount](http://www.pell.portland.or.us/~orc/Code/discount/) package. I use several of its extensions to make things look extra nice.
+  Use the `makepage` command on each `md` file.
+
 ## TODO
 
 * Ensure IterativeGeneralizedEigensolvers respect iteration limits and multiply limits.
 * Improve tests.
 * Rework JDQZ into its own namespace.
-* Add constrained JDQZ (linear homogeneous constraints).
 * Port some Hermitian LAPACK routines.
 
 ## License
