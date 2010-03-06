@@ -22,6 +22,7 @@ The dependencies are listed below.
 * TBLAS
 * Sparse
 * LinearSolve - Also requires TBLAS.h and TLASupport.h
+* LeastSquares - Also requires TBLAS.h and TLASupport.h
 
 ### Sources required
 

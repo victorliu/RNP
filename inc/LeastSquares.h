@@ -30,7 +30,7 @@ struct LSQR{
 //  which must perform the following functions:
 //
 //             If trans = false, compute  y = y + A*x.
-//             If trans = true,  compute  x = x + A(transpose)*y.
+//             If trans = true,  compute  x = x + A'*y.
 //
 //  The vectors x and y are input parameters in both cases.
 //  If  trans = true,  y should be altered without changing x.
@@ -91,7 +91,7 @@ struct LSQR{
 //  where M approximates A in some helpful way
 //  (e.g. M - A has low rank or its elements are small relative to
 //  those of A), LSQR may converge more rapidly on the system
-//        A*M(inverse)*z = b,
+//        A*M'*z = b,
 //  after which x can be recovered by solving M*x = z.
 //
 //  NOTE: If A is symmetric, LSQR should not be used!
@@ -177,7 +177,6 @@ struct LSQR{
 struct Params{
 	typedef typename RNP::TBLAS::_RealOrComplexChooser<T>::real_type real_type;
 	
-	
 	// An estimate of the relative error in the data
 	// defining the matrix A.  For example,
 	// if A is accurate to about 6 digits, set
@@ -193,24 +192,24 @@ struct Params{
 	// An upper limit on cond(Abar), the apparent
 	// condition number of the matrix Abar.
 	// Iterations will be terminated if a computed
-	// estimate of cond(Abar) exceeds conlim.
+	// estimate of cond(Abar) exceeds max_Acond.
 	// This is intended to prevent certain small or
 	// zero singular values of A or Abar from
 	// coming into effect and causing unwanted growth
 	// in the computed solution.
 	//
-	// conlim and damp may be used separately or
+	// max_Acond and damp may be used separately or
 	// together to regularize ill-conditioned systems.
 	//
-	// Normally, conlim should be in the range
+	// Normally, max_Acond should be in the range
 	// 1000 to 1/eps.
 	// Suggested value:
-	// conlim = 1/(100*eps)  for compatible systems,
-	// conlim = 1/(10*sqrt(eps)) for least squares.
+	// max_Acond = 1/(100*eps)  for compatible systems,
+	// max_Acond = 1/(10*sqrt(eps)) for least squares.
 	real_type max_Acond;
 	
 	// Note:  If the user is not concerned about the parameters
-	// atol, btol and conlim, any or all of them may be set
+	// atol, btol and max_Acond, any or all of them may be set
 	// to zero.  The effect will be the same as the values
 	// eps, eps, and 1/eps respectively. (eps is machine precision)
 
@@ -247,23 +246,22 @@ struct OptionalOutputs{
 	//         accurate, given the value of atol.
 	//
 	// 4       An estimate of cond(Abar) has exceeded
-	//         conlim.  The system A*x = b appears to be
+	//         max_Acond.  The system A*x = b appears to be
 	//         ill-conditioned.  Otherwise, there could be an
 	//         error in subroutine aprod.
 	//
 	// 5       The iteration limit max_iterations was reached.
 	int info;
 	
-	// If non NULL, the dimension of se must be n or more.  se(*) then returns standard error
-	// estimates for the components of x. For each i, se(i) is set to the value
+	// If non NULL, the dimension of standard_error must be n or more. standard_error then returns standard error
+	// estimates for the components of x. For each i, standard_error[i] is set to the value
 	//    rnorm * sqrt( sigma(i,i) / t ),
-	// where sigma(i,i) is an estimate of the i-th diagonal of the inverse of Abar(transpose)*Abar
-	// and  t = 1      if  m .le. n,
-	//      t = m - n  if  m .gt. n  and  damp = 0,
-	//      t = m      if  damp .ne. 0.
+	// where sigma(i,i) is an estimate of the i-th diagonal of the inverse of Abar'*Abar
+	// and  t = 1      if  m <= n,
+	//      t = m - n  if  m > n  and  damp = 0,
+	//      t = m      if  damp = 0.
 	//
-	// If NULL, se(*) will not be touched. The actual parameter can be any suitable array
-	// of any length.
+	// If NULL, standard_error will not be referenced.
 	real_type *standard_error; // leave NULL if not wanted
 	
 	// An estimate of the Frobenius norm of  Abar. This is the square-root of the sum of squares
@@ -281,7 +279,7 @@ struct OptionalOutputs{
 	// above).  This will be small if A*x = b has a solution.
 	real_type rnorm;
 
-	// An estimate of the final value of norm( Abar(transpose)*rbar ), the norm of
+	// An estimate of the final value of norm( Abar'*rbar ), the norm of
 	// the residual for the usual normal equations. This should be small in all cases.
 	// (arnorm will often be smaller than the true value computed from the output vector x.)
 	real_type arnorm;
@@ -361,7 +359,7 @@ LSQR(
 
 	//	------------------------------------------------------------------
 	//	Set up the first vectors u and v for the bidiagonalization.
-	//	These satisfy  beta*u = b,	alpha*v = A(transpose)*u.
+	//	These satisfy  beta*u = b,	alpha*v = A'*u.
 	//	------------------------------------------------------------------
 	for(size_t i = 0; i < n; i++){ v[i] = 0; }
 	for(size_t i = 0; i < n; i++){ x[i] = 0; }
@@ -402,7 +400,7 @@ LSQR(
 			// Perform the next step of the bidiagonalization to obtain the
 			// next	 beta, u, alpha, v.	 These satisfy the relations
 			//			  beta*u  =	 A*v  -	 alpha*u,
-			//			 alpha*v  =	 A(transpose)*u	 -	beta*v.
+			//			 alpha*v  =	 A'*u	 -	beta*v.
 			// ------------------------------------------------------------------
 			RNP::TBLAS::Scale( m, (- alpha), u, 1 );
 			Aop(false, v, u, Aop_data);
@@ -508,7 +506,7 @@ LSQR(
 			// ------------------------------------------------------------------
 			// Test for convergence.
 			// First, estimate the norm and condition of the matrix	 Abar,
-			// and the norms of	 rbar  and	Abar(transpose)*rbar.
+			// and the norms of	 rbar  and	Abar'*rbar.
 			// ------------------------------------------------------------------
 			acond = anorm * dnorm;
 			res2 = RNP::TLASupport::Pythag2( res2 , psi	   );

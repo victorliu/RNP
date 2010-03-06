@@ -30,7 +30,7 @@ Documentation for the different modules is listed below.
 * [Generalized Eigensystems](doc_zgg.html)
 * [Iterative Linear Solvers](doc_itersolve.html)
 * [Iterative Generalized Eigensystems](doc_iterzgg.html)
-* LeastSquares - TODO: Dense least squares/norm approximation
+* [LeastSquares](doc_leastsquares.html) - TODO: Dense least squares/norm approximation
 * SVD - TODO: Dense SVD
 * Iterative SVD - TODO
 * Integration - TODO
