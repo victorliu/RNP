@@ -147,7 +147,7 @@ size_t LastNonzeroColumn(size_t m, size_t n, const T *a, size_t lda){ // ilazlc,
 			if(T(0) != a[i+j*lda]){ return j; }
 		}
 	}
-	return j-1; // should be -1, but unsigned
+	return j; // should be -1, but unsigned
 }
 
 template <class T>
@@ -160,7 +160,7 @@ size_t LastNonzeroRow(size_t m, size_t n, const T *a, size_t lda){ // ilazlr, il
 			if(T(0) != a[i+j*lda]){ return i; }
 		}
 	}
-	return i-1; // should be -1, but unsigned
+	return i; // should be -1, but unsigned
 }
 
 template <char norm='M'>
