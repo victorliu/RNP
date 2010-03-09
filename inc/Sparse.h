@@ -354,6 +354,7 @@ std::ostream& PrintSparseMatrix(const TCCSMatrix<T> &A, std::ostream &os = std::
 	}
 	os << "])";
 	#endif
+	return os;
 }
 
 template <class T>
@@ -382,6 +383,7 @@ std::ostream& PrintSparseMatrix(const TCRSMatrix<T> &A, std::ostream &os = std::
 	}
 	os << "])";
 	#endif
+	return os;
 }
 
 #endif // defined(RNP_SPARSE_USE_IO)
