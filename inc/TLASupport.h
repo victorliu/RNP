@@ -859,7 +859,7 @@ struct ApplyOrthognalMatrixFromElementaryReflectors{ // zunmqr, zunm2r, cunmqr, 
 		if(m < 1 || n < 1 || k < 1){ return; }
 
 		int istart, iend, iinc;
-		if(left && ! notran || ! left && notran){
+		if((left && ! notran) || (! left && notran)){
 			istart = 0;
 			iend = k;
 			iinc = 1;
