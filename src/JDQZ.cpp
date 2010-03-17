@@ -287,7 +287,7 @@ void jdqz_rand_vec(size_t n, std::complex<double> *x, size_t incx){
 //   Aop - A routine that applies the A matrix to the first argument and stores it in the second
 //   Bop - just like Aop
 //   EvalSorter - sorter for eigenvalues (args: alpha1,beta1,alpha2,beta2,data)
-//   preconditioner - Applies (approximatino of) inv(A-tau*B) to its argument
+//   preconditioner - Applies (approximation of) inv(A-tau*B) to its argument
 // Ouptuts:
 //   alpha,beta - numerator/denominator pairs for eigenvalues (length k)
 //   vr,ldvr - eigenvalue matrix and leading dimension
