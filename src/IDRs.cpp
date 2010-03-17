@@ -1,6 +1,7 @@
 #include <cstddef>
 #include <cmath>
 #include <complex>
+#include <cstdlib>
 #include "TBLAS.h"
 #include "TLASupport.h"
 #include "LinearSolve.h"
