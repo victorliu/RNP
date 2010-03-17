@@ -9,7 +9,7 @@ typedef RNP::Sparse::TCCSMatrix<std::complex<double> > ccsmatrix;
 
 void Aop(const std::complex<double> *x, std::complex<double> *y, void *data){ 
 	const ccsmatrix *A = reinterpret_cast<ccsmatrix*>(data);
-	RNP::Sparse::MultMV(*A, x, y);
+	RNP::Sparse::MultMV<'N'>(*A, x, y);
 }
 
 int main(){
