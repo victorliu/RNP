@@ -31,6 +31,7 @@ Documentation for the different modules is listed below.
 * [Iterative Linear Solvers](doc_itersolve.html)
 * [Iterative Generalized Eigensystems](doc_iterzgg.html)
 * [LeastSquares](doc_leastsquares.html) - TODO: Dense least squares/norm approximation
+* [IRA](doc_ira.html) (Implicitly Restarted Arnoldi; ARPACK)
 * SVD - TODO: Dense SVD
 * Iterative SVD - TODO
 * Integration - TODO

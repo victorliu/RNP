@@ -1,0 +1,242 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html  PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+<title>RNP Documentation -- IRA</title>
+<style type="text/css">@import url(rnp.css);</style>
+</head>
+<body>
+
+
+<h1>IRA (Implicitly Restarted Arnoldi; ARPACK)</h1>
+
+<p>This module contains a driver interface for a thread-safe C++ port of ARPACK.
+The interface is a bit more subtle than <code>JDQZ</code>, but the trustworthiness and reliability of this package is more well established.
+All functions are in namespace <code>RNP::IRA</code>.</p>
+
+<h2>Contents</h2>
+
+<ul>
+<li><a href="#IRA_Params">Params</a></li>
+<li><a href="#IRA_SortFunctions">Sort Functions</a></li>
+<li><a href="#IRA_Workspace">Workspace</a></li>
+<li><a href="#IRA_Regular">Regular</a></li>
+<li><a href="#IRA_ShiftInverse">ShiftInverse</a></li>
+</ul>
+
+
+<hr />
+
+<h2>Params<a name="IRA_Params" /></h2>
+
+<p>The parameter structure describes general settings for the Arnoldi iteration.</p>
+
+<dl>
+<dt>max_iterations</dt>
+<dd>The maximum number of Arnoldi iterations allowed.
+On return from a driver function, the actual number of iterations taken is written here (note that this is currently not the case; this will be implemented in the future).
+The default is 1000.</dd>
+<dt>tol</dt>
+<dd>The tolerance or stopping criteria: the relative accuracy of a Ritz value is considered acceptable if the computed relative error bound for the Ritz value is less than this value.
+The default is 0, which indicates that machine precision should be used.</dd>
+<dt>no_eigenvectors</dt>
+<dd>Set this to true to indicate that eigenvectors should not be computed.
+However, the invariant subspace corresponding to the eigenvalues is still returned, so relatively little savings is gained.
+The default is <code>false</code>.</dd>
+</dl>
+
+<hr />
+
+<h2>Sort Functions<a name="IRA_SortFunctions" /></h2>
+
+<p>The sort order of the eigenvalues determines the part of the spectrum that will be returned.
+The IRA module generalizes ARPACK&rsquo;s spectrum selection by allowing the user to pass any comparison function.
+However, care must be taken in defining a consistent ordering, and furthermore, the proper selection of a driver routine depending on whether interior or extremal eigenvalues are sought.
+Several predefined sort functions corresponding to those provided by ARPACK are listed below.</p>
+
+<ul>
+<li>LargestMagnitude</li>
+<li>SmallestMagnitude</li>
+<li>LargestRealPart</li>
+<li>SmallestRealPart</li>
+<li>LargestImaginaryPart</li>
+<li>SmallestImaginaryPart</li>
+</ul>
+
+
+<p>None of the predefined sort functions reference the <code>data</code> argument.</p>
+
+<p>If a custom <code>sorter</code> function is used, then <code>sorter(a, b)</code> should return <code>false</code> if <code>a</code> is more desirable than <code>b</code>.</p>
+
+<hr />
+
+<h2>Workspace<a name="IRA_Workspace" /></h2>
+
+<p>The workspace allocation is optional, as described below.
+However, for repeated calls to the drivers for problems of identical size, it is more efficient to pre-allocate the workspace.
+Functions are provided to allocate the properly sized work arrays.</p>
+
+<h3>Prototype</h3>
+
+<pre><code>bool AllocateWorkspace(size_t n, size_t n_wanted, size_t n_arnoldi, Workspace *workspace);
+void FreeWorkspace(size_t n, size_t n_wanted, size_t n_arnoldi, Workspace *workspace);
+</code></pre>
+
+<p>The first three arguments correspond to the arguments of the same name passed to the driver routines, and should have the same values.
+<code>AllocateWorkspace</code> returns true upon success.</p>
+
+<hr />
+
+<h2>Regular<a name="IRA_Regular" /></h2>
+
+<p>This is the driver routine for regular mode problems (no spectral transformation).
+This is the driver to use for computing extremal eigenvalues (e.g. largest magnitude, smallest real part, etc.).
+Both generalized and non-generalized problems are handled here, however the operator callback functions must perform different actions in the two cases, so care must be taken in making sure the action matches the problem being solved.</p>
+
+<p>Solves an eigensystem <code>A * X = lambda * B * X</code>, where only matrix-vector multiplication routines are available for <code>A</code> and <code>B</code> (typically the case for large sparse matrices), and a small number of eigenvalues/vectors are needed.
+The case of <code>B = I</code> is handled specially.</p>
+
+<p>Returns the number of converged eigenpairs.</p>
+
+<h3>Prototype</h3>
+
+<pre><code>int Regular(
+    size_t n, Areg Aop, Bfunc Bop,
+    size_t n_wanted, size_t n_arnoldi,
+    SortFunc sorter,
+    std::complex&lt;double&gt; *w,
+    std::complex&lt;double&gt; *v, size_t ldv,
+    Params *params = NULL,
+    Workspace *workspace = NULL,
+    void *Adata = NULL, void *Bdata = NULL, void *SortData = NULL
+);
+</code></pre>
+
+<h3>Arguments:</h3>
+
+<dl>
+<dt>n</dt>
+<dd>The number of rows/columns of matrices <code>A</code> and <code>B</code>.</dd>
+<dt>Aop, Bop</dt>
+<dd>If <code>Bop</code> is <code>NULL</code>, then the non-generalized problem is solved, and <code>Aop</code> must perform
+
+<pre><code>y &lt;- A*x
+</code></pre>
+
+If <code>Bop</code> is not <code>NULL</code>, then the generalized problem is solved, and <code>Aop</code> must perform
+
+<pre><code>y &lt;- inv(B)*A*x
+</code></pre>
+
+<p>and <code>Bop</code> must perform <code>y &lt;- B*x</code>.
+The third argument is user data, and can be passed in via <code>Adata</code> and <code>Bdata</code>.
+Note that the prototype for <code>Aop</code> differs between driver routines.</p></dd>
+<dt>n_wanted</dt>
+<dd>The number of desired eigenvalues/vectors to be computed (<code>n_wanted &lt;= n-2</code>).</dd>
+<dt>n_arnoldi</dt>
+<dd>The maximum number of Arnoldi vectors to use. It is required that <code>n_wanted+1 &lt;= n_arnoldi &lt;= n</code>.
+A reasonable choice if unsure is <code>2*n_wanted+1</code>.</dd>
+<dt>sorter</dt>
+<dd>The eigenvalue sort function used for selecting which part of the spectrum to compute.</dd>
+<dt>w</dt>
+<dd>Vector of length <code>n_wanted</code> to store the eigenvalues.</dd>
+<dt>v</dt>
+<dd>Pointer to the first element of the matrix which will hold the eigenvectors.
+It must have at least <code>n</code> rows and <code>n_wanted</code> columns. The eigenvectors are stored in the columns in the same order as the eigenvalues.</dd>
+<dt>ldv</dt>
+<dd>Leading dimension of matrix <code>v</code> (typically <code>n</code> unless <code>v</code> is a submatrix of a larger matrix).</dd>
+<dt>params</dt>
+<dd>Specifies the IRA algorithm parameters. This was described above.
+If <code>NULL</code>, then the default parameters are used.</dd>
+<dt>workspace</dt>
+<dd>Points to a <code>Workspace</code> structure if preallocation is used.
+If <code>NULL</code>, then it is internally allocated and freed.</dd>
+<dt>Adata, Bdata</dt>
+<dd>User data that is passed in to each call of <code>Aop</code> and <code>Bop</code>. For sparse matrices, typically this will be a pointer to the sparse matrix structure itself.</dd>
+<dt>SortData</dt>
+<dd>User data that is passed in to each call of <code>sorter</code>.</dd>
+</dl>
+
+<hr />
+
+<h2>ShiftInvert<a name="IRA_ShiftInvert" /></h2>
+
+<p>This is the driver routine for shift-and-invert mode problems.
+This is the driver to use for computing eigenvalues near a specified target (nearest the shift).
+Both generalized and non-generalized problems are handled here, however the operator callback functions must perform different actions in the two cases, so care must be taken in making sure the action matches the problem being solved.</p>
+
+<p>Solves an eigensystem <code>A * X = lambda * B * X</code>, where only matrix-vector multiplication routines are available for <code>A</code> and <code>B</code> (typically the case for large sparse matrices), and a small number of eigenvalues/vectors are needed.
+The case of <code>B = I</code> is handled specially.</p>
+
+<p>Note that internally, the actual problem being solved is</p>
+
+<pre><code>inv(A - sigma * B) * B * x = nu * x
+</code></pre>
+
+<p>where <code>nu = 1/(lambda - sigma)</code>. Therefore for eigenvalues near <code>sigma</code>, <code>nu</code> is very large.
+Hence, the sort function should almost always be <code>LargestMagnitude</code>.</p>
+
+<p>Returns the number of converged eigenpairs.</p>
+
+<h3>Prototype</h3>
+
+<pre><code>int ShiftInvert(
+    size_t n, const std::complex&lt;double&gt; &amp;shift, Ashifted Aop, Bfunc Bop,
+    size_t n_wanted, size_t n_arnoldi,
+    SortFunc sorter,
+    std::complex&lt;double&gt; *w,
+    std::complex&lt;double&gt; *v, size_t ldv,
+    Params *params = NULL,
+    Workspace *workspace = NULL,
+    void *Adata = NULL, void *Bdata = NULL, void *SortData = NULL);
+</code></pre>
+
+<h3>Arguments:</h3>
+
+<dl>
+<dt>n</dt>
+<dd>The number of rows/columns of matrices <code>A</code> and <code>B</code>.</dd>
+<dt>shift</dt>
+<dd>The value near which the desired eigenvalues are located.</dd>
+<dt>Aop, Bop</dt>
+<dd>If <code>Bop</code> is <code>NULL</code>, then the non-generalized problem is solved, and <code>Aop</code> must perform
+
+<pre><code>y &lt;- inv(A - shift*I)*x
+</code></pre>
+
+If <code>Bop</code> is not <code>NULL</code>, then the generalized problem is solved, and <code>Aop</code> must perform
+
+<pre><code>y &lt;- inv(A - shift*B)*x
+</code></pre>
+
+<p>and <code>Bop</code> must perform <code>y &lt;- B*x</code>.
+The third argument is user data, and can be passed in via <code>Adata</code> and <code>Bdata</code>.
+Note that the prototype for <code>Aop</code> differs between driver routines.</p></dd>
+<dt>n_wanted</dt>
+<dd>The number of desired eigenvalues/vectors to be computed (<code>n_wanted &lt;= n-2</code>).</dd>
+<dt>n_arnoldi</dt>
+<dd>The maximum number of Arnoldi vectors to use. It is required that <code>n_wanted+1 &lt;= n_arnoldi &lt;= n</code>.
+A reasonable choice if unsure is <code>2*n_wanted+1</code>.</dd>
+<dt>sorter</dt>
+<dd>The eigenvalue sort function used for selecting which part of the spectrum to compute.
+For targeted problems, the predefined function <code>LargestMagnitude</code> should be used.</dd>
+<dt>w</dt>
+<dd>Vector of length <code>n_wanted</code> to store the eigenvalues.</dd>
+<dt>v</dt>
+<dd>Pointer to the first element of the matrix which will hold the eigenvectors.
+It must have at least <code>n</code> rows and <code>n_wanted</code> columns. The eigenvectors are stored in the columns in the same order as the eigenvalues.</dd>
+<dt>ldv</dt>
+<dd>Leading dimension of matrix <code>v</code> (typically <code>n</code> unless <code>v</code> is a submatrix of a larger matrix).</dd>
+<dt>params</dt>
+<dd>Specifies the IRA algorithm parameters. This was described above.
+If <code>NULL</code>, then the default parameters are used.</dd>
+<dt>workspace</dt>
+<dd>Points to a <code>Workspace</code> structure if preallocation is used.
+If <code>NULL</code>, then it is internally allocated and freed.</dd>
+<dt>Adata, Bdata</dt>
+<dd>User data that is passed in to each call of <code>Aop</code> and <code>Bop</code>. For sparse matrices, typically this will be a pointer to the sparse matrix structure itself.</dd>
+<dt>SortData</dt>
+<dd>User data that is passed in to each call of <code>sorter</code>.</dd>
+</dl>
+</body>
+</html>
