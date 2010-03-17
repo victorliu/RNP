@@ -1721,10 +1721,10 @@ struct _RealOrComplexRand<std::complex<T> >{
 	typedef typename std::complex<T>::value_type real_type;
 
 	inline static void randvec(size_t n, value_type *x, int iseed[4] = NULL){
-		RNP::Random::RandomRealsUniform01((sizeof(value_type)/sizeof(real_type))*n, static_cast<real_type*>(x), iseed);
+		RNP::Random::RandomRealsUniform01((sizeof(value_type)/sizeof(real_type))*n, reinterpret_cast<real_type*>(x), iseed);
 	}
 	inline static size_t numreals(){ return 2; }
-}
+};
 
 // dist specifies the distribution of the random numbers:
 //      = 1:  real and imaginary parts each uniform (0,1)
@@ -1743,10 +1743,11 @@ struct RandomVector{
 			return;
 		}else if(2 == nr){
 			static const size_t chunksize = 64;
-			typename _RealOrComplexRand<T>::real_type buf[2*chunksize];
+			typedef typename _RealOrComplexRand<T>::real_type real_type;
+			real_type buf[2*chunksize];
 			for(size_t i = 0; i < n; i += chunksize){
 				size_t chunk = n-i; if(chunksize < chunk){ chunk = chunksize; }
-				_RealOrComplexRand<T>::randvec(2*chunk, buf, iseed);
+				_RealOrComplexRand<real_type>::randvec(2*chunk, buf, iseed);
 				if(1 == dist){
 					for(size_t j = 0; j < chunk; ++j){
 						x[i+j] = T(buf[2*j+0], buf[2*j+1]);
