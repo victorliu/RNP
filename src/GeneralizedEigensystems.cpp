@@ -1121,21 +1121,23 @@ L50_zhgeqz:
 			// H(ILAST,ILAST-1)=0 -- Standardize B, set ALPHA and BETA
 
 L60_zhgeqz:
-			double absb = abs(t[ilast + ilast*ldt]);
-			if(absb > safmin){
-				std::complex<double> signbc = std::conj(t[ilast+ilast*ldt]/absb);
-				t[ilast+ilast*ldt] = absb;
-				if(ilschr){
-					RNP::TBLAS::Scale(ilast-ifrstm, signbc, &t[ifrstm + ilast*ldt], 1);
-					RNP::TBLAS::Scale(ilast+1-ifrstm, signbc, &h[ifrstm + ilast*ldh], 1);
+			{ // scope for absb
+				double absb = abs(t[ilast + ilast*ldt]);
+				if(absb > safmin){
+					std::complex<double> signbc = std::conj(t[ilast+ilast*ldt]/absb);
+					t[ilast+ilast*ldt] = absb;
+					if(ilschr){
+						RNP::TBLAS::Scale(ilast-ifrstm, signbc, &t[ifrstm + ilast*ldt], 1);
+						RNP::TBLAS::Scale(ilast+1-ifrstm, signbc, &h[ifrstm + ilast*ldh], 1);
+					}else{
+						h[ilast+ilast*ldh] *= signbc;
+					}
+					if(ilz){
+						RNP::TBLAS::Scale(n, signbc, &z[ilast*ldz+1], 1);
+					}
 				}else{
-					h[ilast+ilast*ldh] *= signbc;
+					t[ilast+ilast*ldt] = 0;
 				}
-				if(ilz){
-					RNP::TBLAS::Scale(n, signbc, &z[ilast*ldz+1], 1);
-				}
-			}else{
-				t[ilast+ilast*ldt] = 0;
 			}
 			alpha[ilast] = h[ilast+ilast*ldh];
 			beta[ilast] = t[ilast+ilast*ldt];
