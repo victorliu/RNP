@@ -343,7 +343,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 */
 
-static void zgebal_(char *job, size_t n, std::complex<double> *a, size_t lda, size_t *ilo, size_t *ihi, double *scale)
+static void zgebal_(char job, size_t n, std::complex<double> *a, size_t lda, size_t *ilo, size_t *ihi, double *scale)
 {
 	using namespace std;
 	// Purpose
@@ -438,14 +438,14 @@ static void zgebal_(char *job, size_t n, std::complex<double> *a, size_t lda, si
 		return;
 	}
 
-	if(job[0] == 'N') {
+	if(job == 'N') {
 		for(size_t i = 1; i <= n; ++i){
 			scale[i] = 1.;
 		}
 		return;
 	}
 
-	if(job[0] != 'S') {
+	if(job != 'S') {
 		// Permutation to isolate eigenvalues if possible
 		// Search for rows isolating an eigenvalue and push them down.
 
@@ -504,7 +504,7 @@ static void zgebal_(char *job, size_t n, std::complex<double> *a, size_t lda, si
 		scale[i] = 1.;
 	}
 
-	if(job[0] == 'P') {
+	if(job == 'P') {
 		*ilo = k;
 		*ihi = l;
 		return;
@@ -592,7 +592,7 @@ static void zgebal_(char *job, size_t n, std::complex<double> *a, size_t lda, si
 }
 
 
-static void zgebak_(char *job, char *side, size_t n, size_t ilo, size_t ihi, double *scale, size_t m, std::complex<double> *v, size_t ldv)
+static void zgebak_(char job, char side, size_t n, size_t ilo, size_t ihi, double *scale, size_t m, std::complex<double> *v, size_t ldv)
 {
 
 	// Purpose
@@ -638,15 +638,15 @@ static void zgebak_(char *job, char *side, size_t n, size_t ilo, size_t ihi, dou
 
 	// LDV     The leading dimension of the array V. LDV >= max(1,N).
 
-	const bool rightv = (side[0] == 'R');
-	const bool leftv = (side[0] == 'L');
+	const bool rightv = (side == 'R');
+	const bool leftv = (side == 'L');
 
-	if(n == 0 || m == 0 || job[0] == 'N'){
+	if(n == 0 || m == 0 || job == 'N'){
 		return;
 	}
 
 	if(ilo != ihi){ // Backward balance
-		if(job[0] == 'S' || job[0] == 'B'){
+		if(job == 'S' || job == 'B'){
 			if(rightv){
 				for(size_t i = ilo; i <= ihi; ++i){
 					RNP::TBLAS::Scale(m, scale[i], &v[i+0*ldv], ldv);
@@ -661,7 +661,7 @@ static void zgebak_(char *job, char *side, size_t n, size_t ilo, size_t ihi, dou
 		}
 	}
 	
-	if(job[0] == 'P' || job[0] == 'B'){
+	if(job == 'P' || job == 'B'){
 		// Backward permutation
 		// For  I = ILO-1 step -1 until 1,
 		//        IHI+1 step 1 until N do
@@ -907,7 +907,7 @@ static inline int iparmq_(int ispec, size_t n, size_t ilo, size_t ihi){
 
 static size_t zlaqr0_(bool wantt, bool wantz, size_t n, size_t ilo, size_t ihi, std::complex<double> *_h__, size_t ldh, std::complex<double> *_w, size_t iloz, size_t ihiz, std::complex<double> *_z__, size_t ldz, std::complex<double> *_work, bool is_zero);
 
-static size_t zlahqr_(bool wantt, bool wantz, size_t n, size_t ilo, size_t ihi, std::complex<double> *h, int ldh, std::complex<double> *w, size_t iloz, size_t ihiz, std::complex<double> *z, size_t ldz){
+size_t zlahqr_(bool wantt, bool wantz, size_t n, size_t ilo, size_t ihi, std::complex<double> *h, int ldh, std::complex<double> *w, size_t iloz, size_t ihiz, std::complex<double> *z, size_t ldz){
 	using namespace std;
     // 
     // -- LAPACK auxiliary routine (version 3.2) --
@@ -1314,7 +1314,7 @@ static size_t zlahqr_(bool wantt, bool wantz, size_t n, size_t ilo, size_t ihi, 
 	return info;
 }
 
-static void ztrexc_(int n, std::complex<double> *t, int ldt, std::complex<double> *q, int ldq, int ifst, int ilst){
+void ztrexc_(int n, std::complex<double> *t, int ldt, std::complex<double> *q, int ldq, int ifst, int ilst){
 	using namespace std;
     // 
     // -- LAPACK routine (version 3.2) --
@@ -2700,8 +2700,9 @@ struct SolveTrV_Scaled{
 
 
 
-static int ztrevc_(char *howmny, bool *select, size_t n, std::complex<double> *_t, size_t ldt, std::complex<double> *_vl, size_t ldvl, std::complex<double> *_vr, size_t ldvr, size_t mm, size_t *m, std::complex<double> *_work, double *rwork)
+int ztrevc_(char howmny, bool *_select, size_t n, std::complex<double> *_t, size_t ldt, std::complex<double> *_vl, size_t ldvl, std::complex<double> *_vr, size_t ldvr, size_t mm, size_t *m, std::complex<double> *_work, double *rwork)
 {
+	bool *select = _select;
 	std::complex<double> *t = (std::complex<double>*)_t;
 	std::complex<double> *vl = (std::complex<double>*)_vl;
 	std::complex<double> *vr = (std::complex<double>*)_vr;
@@ -2740,11 +2741,6 @@ static int ztrevc_(char *howmny, bool *select, size_t n, std::complex<double> *_
 
 /*  Arguments */
 /*  ========= */
-
-/*  SIDE    (input) CHARACTER*1 */
-/*          = 'R':  compute right eigenvectors only; */
-/*          = 'L':  compute left eigenvectors only; */
-/*          = 'B':  compute both right and left eigenvectors. */
 
 /*  HOWMNY  (input) CHARACTER*1 */
 /*          = 'A':  compute all right and/or left eigenvectors; */
@@ -2835,6 +2831,10 @@ static int ztrevc_(char *howmny, bool *select, size_t n, std::complex<double> *_
 
 	using namespace std;
 
+	const bool rightv = (NULL != vr);
+	const bool leftv = (NULL != vl);
+	//const bool bothv = rightv && leftv;
+	
 	/* Parameter adjustments */
 	--select;
 	t_offset = 1 + ldt;
@@ -2847,21 +2847,18 @@ static int ztrevc_(char *howmny, bool *select, size_t n, std::complex<double> *_
 	--rwork;
 
 	/* Function Body */
-	const bool rightv = (NULL != vr);
-	const bool leftv = (NULL != vl);
-	//const bool bothv = rightv && leftv;
 
-	//const bool allv = (howmny[0] == 'A');
-	const bool over = (howmny[0] == 'B');
-	const bool somev = (howmny[0] == 'S');
+	//const bool allv = (howmny == 'A');
+	const bool over = (howmny == 'B');
+	const bool somev = (howmny == 'S');
 
 /*     Set M to the number of columns required to store the selected */
 /*     eigenvectors. */
 
 	if (somev) {
 		*m = 0;
-		for (size_t j = 1; j <= n; ++j) {
-			if (select[j]) {
+		for (size_t j = 0; j < n; ++j) {
+			if (_select[j]) {
 				++(*m);
 			}
 		}
@@ -3953,7 +3950,7 @@ static size_t zlaqr0_(bool wantt, bool wantz, size_t n, size_t ilo, size_t ihi, 
 		// will deflate without it.  Here, the QR sweep is
 		// skipped if many eigenvalues have just been deflated
 		// or if the remaining active block is small.
-		if(ld == 0 || ld * 100 <= nw * nibble && kbot - ktop + 1 > min(nmin,nwmax)){
+		if(ld == 0 || (ld * 100 <= nw * nibble && kbot - ktop + 1 > min(nmin,nwmax))){
 			// NS = nominal number of simultaneous shifts.
 			// This may be lowered (slightly) if ZLAQR3
 			// did not provide that many shifts.
@@ -4086,7 +4083,7 @@ static size_t zlaqr0_(bool wantt, bool wantz, size_t n, size_t ilo, size_t ihi, 
 	return kbot;
 }
 
-static int zhseqr_(char *job, char *compz, size_t n, size_t ilo, size_t ihi, std::complex<double> *h, size_t ldh, std::complex<double> *w, std::complex<double> *z, size_t ldz, std::complex<double> *_work)
+static int zhseqr_(char job, char compz, size_t n, size_t ilo, size_t ihi, std::complex<double> *h, size_t ldh, std::complex<double> *w, std::complex<double> *z, size_t ldz, std::complex<double> *_work)
 {
 	//   Purpose
 	//   =======
@@ -4293,9 +4290,9 @@ static int zhseqr_(char *job, char *compz, size_t n, size_t ilo, size_t ihi, std
 	std::complex<double> workl[49];
 
 	/* Function Body */
-	const bool wantt = (job[0] == 'S');
-	const bool initz = (compz[0] == 'I');
-	const bool wantz = initz || (compz[0] == 'V');
+	const bool wantt = (job == 'S');
+	const bool initz = (compz == 'I');
+	const bool wantz = initz || (compz == 'V');
 
 	int info = 0;
 
@@ -4549,7 +4546,7 @@ int RNP::Eigensystem(size_t n,
 
 	const size_t ibal = 0;
 	size_t ilo, ihi;
-	zgebal_("B", n, a, lda, &ilo, &ihi, &rwork[ibal]);
+	zgebal_('B', n, a, lda, &ilo, &ihi, &rwork[ibal]);
 
 	// Reduce to upper Hessenberg form
 	// (CWorkspace: need 2*N, prefer N+N*NB)
@@ -4575,7 +4572,7 @@ int RNP::Eigensystem(size_t n,
 		// (RWorkspace: none)
 
 		iwrk = itau;
-		info = zhseqr_("S", "V", n, ilo, ihi, a, lda, w, vl, ldvl, &work[iwrk]);
+		info = zhseqr_('S', 'V', n, ilo, ihi, a, lda, w, vl, ldvl, &work[iwrk]);
 
 		if (wantvr) {
 			// Want left and right eigenvectors
@@ -4597,13 +4594,13 @@ int RNP::Eigensystem(size_t n,
 		// (RWorkspace: none)
 
 		iwrk = itau;
-		info = zhseqr_("S", "V", n, ilo, ihi, a, lda, w, vr, ldvr, &work[iwrk]);
+		info = zhseqr_('S', 'V', n, ilo, ihi, a, lda, w, vr, ldvr, &work[iwrk]);
 	}else{
 		// Compute eigenvalues only
 		// (CWorkspace: need 1, prefer HSWORK (see comments) )
 		// (RWorkspace: none)
 		iwrk = itau;
-		zhseqr_("E", "N", n, ilo, ihi, a, lda, w, vr, ldvr, &work[iwrk]);
+		zhseqr_('E', 'N', n, ilo, ihi, a, lda, w, vr, ldvr, &work[iwrk]);
 	}
 
 	if(info == 0){
@@ -4613,14 +4610,14 @@ int RNP::Eigensystem(size_t n,
 			// (RWorkspace: need 2*N)
 			irwork = ibal + n;
 			size_t nout;
-			ztrevc_("B", NULL, n, a, lda, vl, ldvl, vr, ldvr, n, &nout, &work[iwrk], &rwork[irwork]);
+			ztrevc_('B', NULL, n, a, lda, vl, ldvl, vr, ldvr, n, &nout, &work[iwrk], &rwork[irwork]);
 		}
 
 		if(wantvl){
 			// Undo balancing of left eigenvectors
 			// (CWorkspace: none)
 			// (RWorkspace: need N)
-			zgebak_("B", "L", n, ilo-1, ihi-1, &rwork[ibal], n, vl, ldvl);
+			zgebak_('B', 'L', n, ilo-1, ihi-1, &rwork[ibal], n, vl, ldvl);
 
 			// Normalize left eigenvectors and make largest component real
 			for(size_t i = 0; i < n; ++i){
@@ -4639,7 +4636,7 @@ int RNP::Eigensystem(size_t n,
 			// Undo balancing of right eigenvectors
 			// (CWorkspace: none)
 			// (RWorkspace: need N)
-			zgebak_("B", "R", n, ilo-1, ihi-1, &rwork[ibal], n, vr, ldvr);
+			zgebak_('B', 'R', n, ilo-1, ihi-1, &rwork[ibal], n, vr, ldvr);
 
 			// Normalize right eigenvectors and make largest component real
 			for(size_t i = 0; i < n; ++i){
