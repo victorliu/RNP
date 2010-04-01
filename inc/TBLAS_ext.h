@@ -1,128 +1,109 @@
-#ifndef _RNP_TBLAS_H_
-#define _RNP_TBLAS_H_
-
-/* BLAS license:
-
-Copyright (c) 1992-2010 The University of Tennessee.  All rights reserved.
-
-Additional copyrights may follow
-
-Redistribution and use in source and binary forms, with or without
-modification, are permitted provided that the following conditions are
-met:
-
-- Redistributions of source code must retain the above copyright
-  notice, this list of conditions and the following disclaimer. 
-  
-- Redistributions in binary form must reproduce the above copyright
-  notice, this list of conditions and the following disclaimer listed
-  in this license in the documentation and/or other materials
-  provided with the distribution.
-  
-- Neither the name of the copyright holders nor the names of its
-  contributors may be used to endorse or promote products derived from
-  this software without specific prior written permission.
-  
-THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-"AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT  
-LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
-A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT 
-OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
-SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
-LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
-DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
-THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT  
-(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. 
-
-Note that much of the low level BLAS was not copied from the official
-BLAS distribution, and is in the public domain.
-
-*/
+#ifndef _RNP_TBLAS_EXT_H_
+#define _RNP_TBLAS_EXT_H_
 
 #define USE_MATH_DEFINES
 #include <complex>
-#include <cmath>
-
-/*
- * Preprocessor flags:
- *   RNP_HAVE_BLAS
- *   RNP_TBLAS_USE_RANDOM
- */
 
 namespace RNP{
 namespace TBLAS{
 
-// Classes to differentiate complex types
-template <class T>
-struct _RealOrComplexChooser{
-	typedef T value_type;
-	typedef T real_type;
-
-	inline static value_type _conj(const value_type &v){ return v; }
-	inline static real_type _real(const value_type &v){ return v; }
-	inline static real_type _imag(const value_type &v){ return 0; }
-	// abs is euclidean norm, abs2 is euclidean norm squared
-	// abs1 is 1-norm (sum of absolute values)
-	// absinf is infinity-norm (max absolute value)
-	inline static real_type _abs(const value_type &v){ using namespace std; return abs(v); }
-	inline static real_type _abs2(const value_type &v){ return v*v; }
-	inline static real_type _abs1(const value_type &v){ using namespace std; return abs(v); }
-	inline static real_type _absinf(const value_type &v){ using namespace std; return abs(v); }
-};
-template <class T>
-struct _RealOrComplexChooser<std::complex<T> >{
-	typedef std::complex<T> value_type;
-	typedef typename std::complex<T>::value_type real_type;
-
-	inline static value_type _conj(const value_type &v){ using namespace std; return conj(v); }
-	inline static real_type _real(const value_type &v){ return v.real(); }
-	inline static real_type _imag(const value_type &v){ return v.imag(); }
-	inline static real_type _abs(const value_type &v){ using namespace std; return abs(v); }
-	inline static real_type _abs2(const value_type &v){ using namespace std; return norm(v); }
-	inline static real_type _abs1(const value_type &v){ using namespace std; return abs(v.real()) + abs(v.imag()); }
-	inline static real_type _absinf(const value_type &v){
-		using namespace std;
-		real_type ar = abs(v.real());
-		real_type ai = abs(v.imag());
-		return ((ar > ai) ? ar : ai);
-	}
-};
+#define RNP_FORTRAN_NAME(LCASE,UCASE) LCASE ## _
 
 //// Level 1
-
-template <class T>
-void Swap(size_t n, T *x, size_t incx, T *y, size_t incy){
-	while(n --> 0){
-		std::swap(*x, *y);
-		x += incx; y += incy;
-	}
+extern "C" void RNP_FORTRAN_NAME(sswap,SSWAP)(const long int &n, float *sx, const long int &incx, float *sy, const long int &incy);
+extern "C" void RNP_FORTRAN_NAME(dswap,DSWAP)(const long int &n, double *sx, const long int &incx, double *sy, const long int &incy);
+extern "C" void RNP_FORTRAN_NAME(cswap,CSWAP)(const long int &n, std::complex<float> *sx, const long int &incx, std::complex<float> *sy, const long int &incy);
+extern "C" void RNP_FORTRAN_NAME(zswap,ZSWAP)(const long int &n, std::complex<double> *sx, const long int &incx, std::complex<double> *sy, const long int &incy);
+template <>
+inline void Swap<float>(size_t n, float *x, size_t incx, float *y, size_t incy){
+	RNP_FORTRAN_NAME(sswap,SSWAP)(n, x, incx, y, incy);
+}
+template <>
+inline void Swap<double>(size_t n, double *x, size_t incx, double *y, size_t incy){
+	RNP_FORTRAN_NAME(dswap,DSWAP)(n, x, incx, y, incy);
+}
+template <>
+inline void Swap<std::complex<float> >(size_t n, std::complex<float> *x, size_t incx, std::complex<float> *y, size_t incy){
+	RNP_FORTRAN_NAME(cswap,CSWAP)(n, x, incx, y, incy);
+}
+template <>
+inline void Swap<std::complex<double> >(size_t n, std::complex<double> *x, size_t incx, std::complex<double> *y, size_t incy){
+	RNP_FORTRAN_NAME(zswap,ZSWAP)(n, x, incx, y, incy);
 }
 
-template <class S, class T>
-void Scale(size_t n, const S &scale, T *x, size_t incx){
-	while(n --> 0){
-		(*x) *= scale;
-		x += incx;
-	}
+extern "C" void RNP_FORTRAN_NAME(sscal,SSCAL)(const long int &n, const float &sa, float *sx, const long int &incx);
+extern "C" void RNP_FORTRAN_NAME(dscal,DSCAL)(const long int &n, const double &sa, double *sx, const long int &incx);
+extern "C" void RNP_FORTRAN_NAME(cscal,CSCAL)(const long int &n, const std::complex<float> &sa, std::complex<float> *sx, const long int &incx);
+extern "C" void RNP_FORTRAN_NAME(zscal,ZSCAL)(const long int &n, const std::complex<double> &sa, std::complex<double> *sx, const long int &incx);
+extern "C" void RNP_FORTRAN_NAME(csscal,CSSCAL)(const long int &n, const float &sa, std::complex<float> *cx, const long int &incx);
+extern "C" void RNP_FORTRAN_NAME(zdscal,ZDSCAL)(const long int &n, const double &sa, std::complex<double> *cx, const long int &incx);
+template <>
+inline void Scale<float,float>(size_t n, const float &scale, float *x, size_t incx){
+	RNP_FORTRAN_NAME(sscal,SSCAL)(n, scale, x, incx);
+}
+template <>
+inline void Scale<double,double>(size_t n, const double &scale, double *x, size_t incx){
+	RNP_FORTRAN_NAME(dscal,DSCAL)(n, scale, x, incx);
+}
+template <>
+inline void Scale<std::complex<float>,std::complex<float> >(size_t n, const std::complex<float> &scale, std::complex<float> *x, size_t incx){
+	RNP_FORTRAN_NAME(cscal,CSCAL)(n, scale, x, incx);
+}
+template <>
+inline void Scale<std::complex<double>,std::complex<double> >(size_t n, const std::complex<double> &scale, std::complex<double> *x, size_t incx){
+	RNP_FORTRAN_NAME(zscal,ZSCAL)(n, scale, x, incx);
+}
+template <>
+inline void Scale<float,std::complex<float> >(size_t n, const float &scale, std::complex<float> *x, size_t incx){
+	RNP_FORTRAN_NAME(csscal,CSSCAL)(n, scale, x, incx);
+}
+template <>
+inline void Scale<double,std::complex<double> >(size_t n, const double &scale, std::complex<double> *x, size_t incx){
+	RNP_FORTRAN_NAME(zdscal,ZDSCAL)(n, scale, x, incx);
 }
 
-template <class T>
-void Copy(size_t n, const T *src, size_t incsrc, T *dst, size_t incdst){
-	while(n --> 0){
-		(*dst) = (*src);
-		src += incsrc; dst += incdst;
-	}
+extern "C" void RNP_FORTRAN_NAME(scopy,SCOPY)(const long int &n, const float *sx, const long int &incx, float *sy, const long int &incy);
+extern "C" void RNP_FORTRAN_NAME(dcopy,DCOPY)(const long int &n, const double *sx, const long int &incx, double *sy, const long int &incy);
+extern "C" void RNP_FORTRAN_NAME(ccopy,CCOPY)(const long int &n, const std::complex<float> *sx, const long int &incx, std::complex<float> *sy, const long int &incy);
+extern "C" void RNP_FORTRAN_NAME(zcopy,ZCOPY)(const long int &n, const std::complex<double> *sx, const long int &incx, std::complex<double> *sy, const long int &incy);
+template <>
+inline void Copy<float>(size_t n, const float *src, size_t incsrc, float *dst, size_t incdst){
+	RNP_FORTRAN_NAME(scopy,SCOPY)(n, src, incsrc, dst, incdst);
+}
+template <>
+inline void Copy<double>(size_t n, const double *src, size_t incsrc, double *dst, size_t incdst){
+	RNP_FORTRAN_NAME(dcopy,DCOPY)(n, src, incsrc, dst, incdst);
+}
+template <>
+inline void Copy<std::complex<float> >(size_t n, const std::complex<float> *src, size_t incsrc, std::complex<float> *dst, size_t incdst){
+	RNP_FORTRAN_NAME(ccopy,CCOPY)(n, src, incsrc, dst, incdst);
+}
+template <>
+inline void Copy<std::complex<double> >(size_t n, const std::complex<double> *src, size_t incsrc, std::complex<double> *dst, size_t incdst){
+	RNP_FORTRAN_NAME(zcopy,ZCOPY)(n, src, incsrc, dst, incdst);
 }
 
-template <class S, class T>
-void Axpy(size_t n, const S &alpha, const T *x, size_t incx, T *y, size_t incy){
-	while(n --> 0){
-		(*y) += alpha*(*x);
-		x += incx; y += incy;
-	}
+extern "C" void RNP_FORTRAN_NAME(saxpy,SAXPY)(const long int &n, const float &sa, const float *sx, const long int &incx, float *sy, const long int &incy);
+extern "C" void RNP_FORTRAN_NAME(daxpy,dAXPY)(const long int &n, const double &sa, const double *sx, const long int &incx, double *sy, const long int &incy);
+extern "C" void RNP_FORTRAN_NAME(caxpy,CAXPY)(const long int &n, const std::complex<float> &sa, const std::complex<float> *sx, const long int &incx, std::complex<float> *sy, const long int &incy);
+extern "C" void RNP_FORTRAN_NAME(zaxpy,ZAXPY)(const long int &n, const std::complex<double> &sa, const std::complex<double> *sx, const long int &incx, std::complex<double> *sy, const long int &incy);
+template <>
+inline void Axpy<float,float>(size_t n, const float &alpha, const float *x, size_t incx, float *y, size_t incy){
+	RNP_FORTRAN_NAME(saxpy,SAXPY)(n, alpha, x, incx, y, incy);
 }
-
+template <>
+inline void Axpy<double,double>(size_t n, const double &alpha, const double *x, size_t incx, double *y, size_t incy){
+	RNP_FORTRAN_NAME(daxpy,dAXPY)(n, alpha, x, incx, y, incy);
+}
+template <>
+inline void Axpy<std::complex<float>,std::complex<float> >(size_t n, const std::complex<float> &alpha, const std::complex<float> *x, size_t incx, std::complex<float> *y, size_t incy){
+	RNP_FORTRAN_NAME(caxpy,CAXPY)(n, alpha, x, incx, y, incy);
+}
+template <>
+inline void Axpy<std::complex<double>,std::complex<double> >(size_t n, const std::complex<double> &alpha, const std::complex<double> *x, size_t incx, std::complex<double> *y, size_t incy){
+	RNP_FORTRAN_NAME(zaxpy,ZAXPY)(n, alpha, x, incx, y, incy);
+}
+/*
 template <class T>
 T Dot(size_t n, const T *x, size_t incx, T *y, size_t incy){
 	T sum(0);
@@ -142,131 +123,85 @@ T ConjugateDot(size_t n, const T *x, size_t incx, T *y, size_t incy){
 	}
 	return sum;
 }
-
-template <class T>
-typename _RealOrComplexChooser<T>::real_type Norm2(size_t n, const T *x, size_t incx){
-	typedef typename _RealOrComplexChooser<T>::real_type real_type;
-	using namespace std;
-	real_type ssq(1), scale(0);
-	while(n --> 0){
-		if(0 != _RealOrComplexChooser<T>::_real(*x)){
-			real_type temp = abs(_RealOrComplexChooser<T>::_real(*x));
-			if(scale < temp){
-				real_type r = scale/temp;
-				ssq = ssq*r*r + real_type(1);
-				scale = temp;
-			}else{
-				real_type r = temp/scale;
-				ssq += r*r;
-			}
-		}
-		if(0 != _RealOrComplexChooser<T>::_imag(*x)){
-			real_type temp = abs(_RealOrComplexChooser<T>::_imag(*x));
-			if(scale < temp){
-				real_type r = scale/temp;
-				ssq = ssq*r*r + real_type(1);
-				scale = temp;
-			}else{
-				real_type r = temp/scale;
-				ssq += r*r;
-			}
-		}
-		x += incx;
-	}
-	using namespace std;
-	return scale*sqrt(ssq);
+*/
+float RNP_FORTRAN_NAME(snrm2,SNRM2)(const long int &n, const float *x, const long int &incx);
+double RNP_FORTRAN_NAME(dnrm2,DNRM2)(const long int &n, const double *x, const long int &incx);
+float RNP_FORTRAN_NAME(scnrm2,SCNRM2)(const long int &n, const std::complex<float> *x, const long int &incx);
+double RNP_FORTRAN_NAME(dznrm2,DZNRM2)(const long int &n, const std::complex<double> *x, const long int &incx);
+template <>
+inline float Norm2<float>(size_t n, const float *x, size_t incx){
+	return RNP_FORTRAN_NAME(snrm2,SNRM2)(n, x, incx);
+}
+template <>
+inline double Norm2<double>(size_t n, const double *x, size_t incx){
+	return RNP_FORTRAN_NAME(dnrm2,DNRM2)(n, x, incx);
+}
+template <>
+inline float Norm2<std::complex<float> >(size_t n, const std::complex<float> *x, size_t incx){
+	return RNP_FORTRAN_NAME(scnrm2,SCNRM2)(n, x, incx);
+}
+template <>
+inline double Norm2<std::complex<double> >(size_t n, const std::complex<double> *x, size_t incx){
+	return RNP_FORTRAN_NAME(dznrm2,DZNRM2)(n, x, incx);
 }
 
-template <class T>
-typename _RealOrComplexChooser<T>::real_type Asum(size_t n, const T *x, size_t incx){
-	typedef typename _RealOrComplexChooser<T>::real_type real_type;
-	real_type sum(0);
-	while(n --> 0){
-		sum += _RealOrComplexChooser<T>::_abs1(*x);
-		x += incx;
-	}
-	return sum;
+float RNP_FORTRAN_NAME(sasum,SASUM)(const long int &n, const float *x, const long int &incx);
+double RNP_FORTRAN_NAME(dasum,DASUM)(const long int &n, const double *x, const long int &incx);
+float RNP_FORTRAN_NAME(scasum,SCASUM)(const long int &n, const std::complex<float> *x, const long int &incx);
+double RNP_FORTRAN_NAME(dzasum,DZASUM)(const long int &n, const std::complex<double> *x, const long int &incx);
+template <>
+inline float Asum<float>(size_t n, const float *x, size_t incx){
+	return RNP_FORTRAN_NAME(sasum,SASUM)(n, x, incx);
+}
+template <>
+inline double Asum<double>(size_t n, const double *x, size_t incx){
+	return RNP_FORTRAN_NAME(dasum,DASUM)(n, x, incx);
+}
+template <>
+inline float Asum<std::complex<float> >(size_t n, const std::complex<float> *x, size_t incx){
+	return RNP_FORTRAN_NAME(scasum,SCASUM)(n, x, incx);
+}
+template <>
+inline double Asum<std::complex<double> >(size_t n, const std::complex<double> *x, size_t incx){
+	return RNP_FORTRAN_NAME(dzasum,DZASUM)(n, x, incx);
 }
 
-template <class T>
-size_t MaximumIndex(size_t n, const T *x, size_t incx){
-	if(n < 1){ return 0; }
-	typedef typename _RealOrComplexChooser<T>::real_type real_type;
-	real_type mv = _RealOrComplexChooser<T>::_abs1(*x);
-	size_t mi = 0;
-	for(size_t i = 1; i < n; ++i){
-		x += incx;
-		real_type cv = _RealOrComplexChooser<T>::_abs1(*x);
-		if(cv > mv){ mi = i; mv = cv; }
-	}
-	return mi;
+extern "C" long int RNP_FORTRAN_NAME(isamax,ISAMAX)(const long int &n, const float *sx, const long int &incx);
+extern "C" long int RNP_FORTRAN_NAME(idamax,IDAMAX)(const long int &n, const double *sx, const long int &incx);
+extern "C" long int RNP_FORTRAN_NAME(icamax,ICAMAX)(const long int &n, const std::complex<float> *sx, const long int &incx);
+extern "C" long int RNP_FORTRAN_NAME(izamax,IZAMAX)(const long int &n, const std::complex<double> *sx, const long int &incx);
+template <>
+inline size_t MaximumIndex<float>(size_t n, const float *x, size_t incx){
+	return RNP_FORTRAN_NAME(isamax,ISAMAX)(n, x, incx) - 1;
+}
+template <>
+inline size_t MaximumIndex<double>(size_t n, const double *x, size_t incx){
+	return RNP_FORTRAN_NAME(idamax,IDAMAX)(n, x, incx) - 1;
+}
+template <>
+inline size_t MaximumIndex<std::complex<float> >(size_t n, const std::complex<float> *x, size_t incx){
+	return RNP_FORTRAN_NAME(icamax,ICAMAX)(n, x, incx) - 1;
+}
+template <>
+inline size_t MaximumIndex<std::complex<double> >(size_t n, const std::complex<double> *x, size_t incx){
+	return RNP_FORTRAN_NAME(izamax,IZAMAX)(n, x, incx) - 1;
 }
 
 //// Level 2
 
-template <char trans>
-struct MultMV{ // zgemv, dgemv, cgemv, sgemv
-	template <class A, class B, class T>
-	MultMV(size_t m, size_t n, const A &alpha, const T *a, size_t lda,
-           const T *x, size_t incx,
-           const B &beta, T *y, size_t incy)
-	{
-		if(m < 1 || n < 1 || (A(0) == alpha && B(1) == beta)){ return; }
-		const bool noconj = (trans == 'T');
-		const size_t leny = ((trans == 'N') ? m : n);
-		
-		if(B(1) != beta){
-			T *yy = y;
-			size_t l = leny;
-			if(B(0) == beta){
-				while(l --> 0){
-					*yy = 0;
-					yy += incy;
-				}
-			}else{
-				while(l --> 0){
-					*yy *= beta;
-					yy += incy;
-				}
-			}
-		}
-		if(A(0) == alpha){ return; }
-		if('N' == trans){ // y <- alpha*A*x + y
-			const T *xx = x;
-			for(size_t j = 0; j < n; ++j){
-				if(T(0) != *xx){
-					T temp(alpha*(*xx));
-					T *yy = y;
-					for(size_t i = 0; i < m; ++i){
-						*yy += temp*a[i+j*lda];
-						yy += incy;
-					}
-				}
-				xx += incx;
-			}
-		}else{
-			for(size_t j = 0; j < n; ++j){
-				T temp(0);
-				if(noconj){
-					const T *xx = x;
-					for(size_t i = 0; i < m; ++i){
-						temp += a[i+j*lda]*(*xx);
-						xx += incx;
-					}
-				}else{
-					const T *xx = x;
-					for(size_t i = 0; i < m; ++i){
-						temp += _RealOrComplexChooser<T>::_conj(a[i+j*lda])*(*xx);
-						xx += incx;
-					}
-				}
-				*y += alpha*temp;
-				y += incy;
-			}
-		}
-	}
-};
+extern "C" void RNP_FORTRAN_NAME(zgemv,ZGEMV)(const char *trans, const long int &m, const long int &n, 
+	const std::complex<double> &alpha, const std::complex<double> *a, const long int &lda, const std::complex<double> *x,
+	const long int &incx, const std::complex<double> &beta, std::complex<double> *y, const long int &incy);
+template <>
+template <>
+inline MultMV<'N'>::MultMV(size_t m, size_t n, const std::complex<double> &alpha, const std::complex<double> *a, size_t lda,
+       const std::complex<double> *x, size_t incx,
+       const std::complex<double> &beta, std::complex<double> *y, size_t incy)
+{
+	RNP_FORTRAN_NAME(zgemv,ZGEMV)("N", m, n, alpha, a, lda, x, incx, beta, y, incy);
+}
 
+/*
 template <char uplo, char trans, char diag>
 struct MultTrV{ // ztrmv, dtrmv, ctrmv, strmv
 	template <class T>
@@ -544,120 +479,6 @@ struct SolveTrV{ // ztrsv, dtrsv, ctrsv, strsv
 		//          with the solution vector x.
 
 		// INCX   - the increment for the elements of X. INCX must not be zero.
-/*
-		// Parameter adjustments
-		int a_offset = 1 + lda;
-		a -= a_offset;
-		
-		--x;
-		int i, j, ix, jx, kx;
-
-		if(n == 0){ return; }
-
-		const bool noconj = (trans == 'T');
-		const bool nounit = (diag == 'N');
-
-		// Set up the start point in X if the increment is not unity. This
-		// will be  ( N - 1 )*INCX  too small for descending loops.
-
-		if(incx <= 0){
-			kx = 1 - (n - 1) * incx;
-		}else{
-			kx = 1;
-		}
-
-		// Start the operations. In this version the elements of A are
-		// accessed sequentially with one pass through A.
-
-		if(trans == 'N'){ // Form  x := inv( A )*x.
-			if(uplo == 'U'){
-				jx = kx + (n - 1) * incx;
-				for(j = n; j >= 1; --j){
-					if(x[jx] != 0.){
-						if(nounit){
-							x[jx] /= a[j+j*lda];
-						}
-						T temp = x[jx];
-						ix = jx;
-						for(i = j - 1; i >= 1; --i){
-							ix -= incx;
-							x[ix] -= temp * a[i+j*lda];
-						}
-					}
-					jx -= incx;
-				}
-			}else{
-				jx = kx;
-				for(j = 1; j <= n; ++j){
-					if(x[jx] != 0.){
-						if(nounit){
-							x[jx] /= a[j+j*lda];
-						}
-						T temp = x[jx];
-						ix = jx;
-						for(i = j + 1; i <= n; ++i){
-							ix += incx;
-							x[ix] -= temp * a[i+j*lda];
-						}
-					}
-					jx += incx;
-				}
-			}
-		}else{ // Form  x := inv( A' )*x  or  x := inv( conjg( A' ) )*x.
-			if(uplo == 'U'){
-				jx = kx;
-				for(j = 1; j <= n; ++j){
-					ix = kx;
-					T temp = x[jx];
-					if(noconj){
-						for(i = 1; i <= j - 1; ++i){
-							temp -= a[i+j*lda] * x[ix];
-							ix += incx;
-						}
-						if(nounit){
-							temp /= a[j+j*lda];
-						}
-					}else{
-						for(i = 1; i <= j - 1; ++i){
-							temp -= _RealOrComplexChooser<T>::_conj(a[i+j*lda]) * x[ix];
-							ix += incx;
-						}
-						if(nounit){
-							temp /= _RealOrComplexChooser<T>::_conj(a[j+j*lda]);
-						}
-					}
-					x[jx] = temp;
-					jx += incx;
-				}
-			}else{
-				kx += (n - 1) * incx;
-				jx = kx;
-				for(j = n; j >= 1; --j){
-					ix = kx;
-					T temp = x[jx];
-					if(noconj){
-						for(i = n; i >= j + 1; --i){
-							temp -= a[i+j*lda] * x[ix];
-							ix -= incx;
-						}
-						if(nounit){
-							temp /= a[j+j*lda];
-						}
-					}else{
-						for(i = n; i >= j + 1; --i){
-							temp -= _RealOrComplexChooser<T>::_conj(a[i+j*lda]) * x[ix];
-							ix -= incx;
-						}
-						if(nounit){
-							temp /= _RealOrComplexChooser<T>::_conj(a[j+j*lda]);
-						}
-					}
-					x[jx] = temp;
-					jx -= incx;
-				}
-			}
-		}
-		*/
 		
 		if(n == 0){ return; }
 
@@ -791,273 +612,22 @@ void ConjugateRank1Update(size_t m, size_t n, const A &alpha, const T *x, size_t
 		y += incy;
 	}
 }
-
+*/
 //// Level 3
 
-// MultMM (zgemm)
-template <char transa='N', char transb='N'>
-struct MultMM{
-	template <class A, class B, class T>
-	MultMM(size_t m, size_t n, size_t k, const A &alpha, const T *a, size_t lda,
-		const T *b, size_t ldb, const B &beta, T *c, size_t ldc){
+extern "C" void RNP_FORTRAN_NAME(zgemm,ZGEMM)(const char *transa, const char *transb, const long int &m, const long int &
+	n, const long int &k, const std::complex<double> &alpha, const std::complex<double> *a, const long int &lda, 
+	const std::complex<double> *b, const long int &ldb, const std::complex<double> &beta, std::complex<double> *c, const long int &ldc);
+	
+template <>
+template <>
+inline MultMM<'N','N'>::MultMM(size_t m, size_t n, size_t k, const double &alpha, const std::complex<double> *a, size_t lda,
+	const std::complex<double> *b, size_t ldb, const double &beta, std::complex<double> *c, size_t ldc){
+	RNP_FORTRAN_NAME(zgemm,ZGEMM)("N", "N", m,n,k, std::complex<double>(alpha),a,lda, b,ldb, std::complex<double>(beta),c,ldc);
+}
 
-		// ZGEMM  performs one of the matrix-matrix operations
-		//    C := alpha*op( A )*op( B ) + beta*C,
-		// where  op( X ) is one of
-		//    op( X ) = X   or   op( X ) = X'   or   op( X ) = conjg( X' ),
-		// alpha and beta are scalars, and A, B and C are matrices, with op( A )
-		// an m by k matrix,  op( B )  a  k by n matrix and  C an m by n matrix.
 
-		// Arguments
-		// ==========
-
-		// TRANSA - On entry, TRANSA specifies the form of op( A ) to be used in
-		//          the matrix multiplication as follows:
-		//             TRANSA = 'N' or 'n',  op( A ) = A.
-		//             TRANSA = 'T' or 't',  op( A ) = A'.
-		//             TRANSA = 'C' or 'c',  op( A ) = conjg( A' ).
-
-		// TRANSB - On entry, TRANSB specifies the form of op( B ) to be used in
-		//          the matrix multiplication as follows:
-		//             TRANSB = 'N' or 'n',  op( B ) = B.
-		//             TRANSB = 'T' or 't',  op( B ) = B'.
-		//             TRANSB = 'C' or 'c',  op( B ) = conjg( B' ).
-
-		// M      - On entry,  M  specifies  the number  of rows  of the  matrix
-		//          op( A )  and of the  matrix  C.
-
-		// N      - On entry,  N  specifies the number  of columns of the matrix
-		//          op( B ) and the number of columns of the matrix C.
-
-		// K      - On entry,  K  specifies  the number of columns of the matrix
-		//          op( A ) and the number of rows of the matrix op( B ).
-
-		// ALPHA  - On entry, ALPHA specifies the scalar alpha.
-
-		// A      - COMPLEX*16       array of DIMENSION ( LDA, ka ), where ka is
-		//          k  when  TRANSA = 'N' or 'n',  and is  m  otherwise.
-		//          Before entry with  TRANSA = 'N' or 'n',  the leading  m by k
-		//          part of the array  A  must contain the matrix  A,  otherwise
-		//          the leading  k by m  part of the array  A  must contain  the
-		//          matrix A.
-
-		// LDA    - On entry, LDA specifies the first dimension of A as declared
-		//          in the calling (sub) program. When  TRANSA = 'N' or 'n' then
-		//          LDA must be at least  max( 1, m ), otherwise  LDA must be at
-		//          least  max( 1, k ).
-
-		// B      - COMPLEX*16       array of DIMENSION ( LDB, kb ), where kb is
-		//          n  when  TRANSB = 'N' or 'n',  and is  k  otherwise.
-		//          Before entry with  TRANSB = 'N' or 'n',  the leading  k by n
-		//          part of the array  B  must contain the matrix  B,  otherwise
-		//          the leading  n by k  part of the array  B  must contain  the
-		//          matrix B.
-		//          Unchanged on exit.
-
-		// LDB    - On entry, LDB specifies the first dimension of B as declared
-		//          in the calling (sub) program. When  TRANSB = 'N' or 'n' then
-		//          LDB must be at least  max( 1, k ), otherwise  LDB must be at
-		//          least  max( 1, n ).
-
-		// BETA   - On entry,  BETA  specifies the scalar  beta.  When  BETA  is
-		//          supplied as zero then C need not be set on input.
-
-		// C      - COMPLEX*16       array of DIMENSION ( LDC, n ).
-		//          Before entry, the leading  m by n  part of the array  C must
-		//          contain the matrix  C,  except when  beta  is zero, in which
-		//          case C need not be set on entry.
-		//          On exit, the array  C  is overwritten by the  m by n  matrix
-		//          ( alpha*op( A )*op( B ) + beta*C ).
-
-		// LDC    - On entry, LDC specifies the first dimension of C as declared
-		//          in  the  calling  (sub)  program.   LDC  must  be  at  least
-		//          max( 1, m ).
-
-		//    Set  NOTA  and  NOTB  as  true if  A  and  B  respectively are not
-		//    conjugated or transposed, set  CONJA and CONJB  as true if  A  and
-		//    B  respectively are to be  transposed but  not conjugated  and set
-		//    NROWA, NCOLA and  NROWB  as the number of rows and  columns  of  A
-		//    and the number of rows of  B  respectively.
-
-		const bool nota = (transa == 'N');
-		const bool notb = (transb == 'N');
-		const bool conja = (transa == 'C');
-		const bool conjb = (transb == 'C');
-
-		if(m == 0 || n == 0 || ((A(0) == alpha || k == 0) && (B(1) == beta))){ return; }
-
-		if(A(0) == alpha){
-			if(B(0) == beta){
-				for(size_t j = 0; j < n; ++j){
-					for(size_t i = 0; i < m; ++i){
-						c[i+j*ldc] = 0;
-					}
-				}
-			}else{
-				for(size_t j = 0; j < n; ++j){
-					for(size_t i = 0; i < m; ++i){
-						c[i+j*ldc] *= beta;
-					}
-				}
-			}
-			return;
-		}
-
-		if(notb){
-			if(nota){ // Form  C := alpha*A*B + beta*C.
-				for(size_t j = 0; j < n; ++j){
-					if(B(0) == beta){
-						for(size_t i = 0; i < m; ++i){
-							c[i+j*ldc] = 0;
-						}
-					}else if(B(1) != beta){
-						for(size_t i = 0; i < m; ++i){
-							c[i+j*ldc] *= beta;
-						}
-					}
-					for(size_t l = 0; l < k; ++l){
-						if(T(0) != b[l+j*ldb]){
-							T temp = alpha * b[l+j*ldb];
-							for(size_t i = 0; i < m; ++i){
-								c[i+j*ldc] += temp * a[i+l*lda];
-							}
-						}
-					}
-				}
-			}else if(conja){ // Form  C := alpha*conjg( A' )*B + beta*C.
-				for(size_t j = 0; j < n; ++j){
-					for(size_t i = 0; i < m; ++i){
-						T temp = 0;
-						for(size_t l = 0; l < k; ++l){
-							temp += _RealOrComplexChooser<T>::_conj(a[l+i*lda]) * b[l+j*ldb];
-						}
-						if(B(0) == beta){
-							c[i+j*ldc] = alpha * temp;
-						}else{
-							c[i+j*ldc] = alpha * temp + beta * c[i+j*ldc];
-						}
-					}
-				}
-			}else{ // Form  C := alpha*A'*B + beta*C
-				for(size_t j = 0; j < n; ++j){
-					for(size_t i = 0; i < m; ++i){
-						T temp = 0;
-						for(size_t l = 0; l < k; ++l){
-							temp += a[l+i*lda] * b[l+j*ldb];
-						}
-						if(B(0) == beta){
-							c[i+j*ldc] = alpha * temp;
-						}else{
-							c[i+j*ldc] = alpha * temp + beta * c[i+j*ldc];
-						}
-					}
-				}
-			}
-		}else if(nota){
-			if(conjb){ // Form  C := alpha*A*conjg( B' ) + beta*C.
-				for(size_t j = 0; j < n; ++j){
-					if(B(0) == beta){
-						for(size_t i = 0; i < m; ++i){
-							c[i+j*ldc] = 0;
-						}
-					}else if(B(1) != beta){
-						for(size_t i = 0; i < m; ++i){
-							c[i+j*ldc] *= beta;
-						}
-					}
-					for(size_t l = 0; l < k; ++l){
-						if(T(0) != b[j+l*ldb]){
-							T temp = alpha * _RealOrComplexChooser<T>::_conj(b[j+l*ldb]);
-							for(size_t i = 0; i < m; ++i){
-								c[i+j*ldc] += temp * a[i+l*lda];
-							}
-						}
-					}
-				}
-			}else{ // Form  C := alpha*A*B' + beta*C
-				for(size_t j = 0; j < n; ++j){
-					if(B(0) == beta){
-						for(size_t i = 0; i < m; ++i){
-							c[i+j*ldc] = 0;
-						}
-					}else if(B(1) != beta){
-						for(size_t i = 0; i < m; ++i){
-							c[i+j*ldc] *= beta;
-						}
-					}
-					for(size_t l = 0; l < k; ++l){
-						if(T(0) != b[j+l*ldb]){
-							T temp = alpha * b[j+l*ldb];
-							for(size_t i = 0; i < m; ++i){
-								c[i+j*ldc] += temp * a[i+l*lda];
-							}
-						}
-					}
-				}
-			}
-		}else if(conja){
-			if(conjb){ // Form  C := alpha*conjg( A' )*conjg( B' ) + beta*C.
-				for(size_t j = 0; j < n; ++j){
-					for(size_t i = 0; i < m; ++i){
-						T temp = 0;
-						for(size_t l = 0; l < k; ++l){
-							temp += _RealOrComplexChooser<T>::_conj(a[l+i*lda]) * _RealOrComplexChooser<T>::_conj(b[j+l*ldb]);
-						}
-						if(B(0) == beta){
-							c[i+j*ldc] = alpha * temp;
-						}else{
-							c[i+j*ldc] = alpha * temp + beta * c[i+j*ldc];
-						}
-					}
-				}
-			}else{ // Form  C := alpha*conjg( A' )*B' + beta*C
-				for(size_t j = 0; j < n; ++j){
-					for(size_t i = 0; i < m; ++i){
-						T temp = 0;
-						for(size_t l = 0; l < k; ++l){
-							temp += _RealOrComplexChooser<T>::_conj(a[l+i*lda]) * b[j+l*ldb];
-						}
-						if(B(0) == beta){
-							c[i+j*ldc] = alpha * temp;
-						}else{
-							c[i+j*ldc] = alpha * temp + beta * c[i+j*ldc];
-						}
-					}
-				}
-			}
-		}else{
-			if(conjb){ // Form  C := alpha*A'*conjg( B' ) + beta*C
-				for(size_t j = 0; j < n; ++j){
-					for(size_t i = 0; i < m; ++i){
-						T temp = 0;
-						for(size_t l = 0; l < k; ++l){
-							temp += a[l + i * lda] * _RealOrComplexChooser<T>::_conj(b[j+l*ldb]);
-						}
-						if(B(0) == beta){
-							c[i+j*ldc] = alpha * temp;
-						}else{
-							c[i+j*ldc] = alpha * temp + beta * c[i+j*ldc];
-						}
-					}
-				}
-			}else{ // Form  C := alpha*A'*B' + beta*C
-				for(size_t j = 0; j < n; ++j){
-					for(size_t i = 0; i < m; ++i){
-						T temp = 0;
-						for(size_t l = 0; l < k; ++l){
-							temp += a[l+i*lda] * b[j+l*ldb];
-						}
-						if(B(0) == beta){
-							c[i+j*ldc] = alpha * temp;
-						}else{
-							c[i+j*ldc] = alpha * temp + beta * c[i+j*ldc];
-						}
-					}
-				}
-			}
-		}
-	}
-};
+/*
 
 template <char side, char uplo, char transa, char diag>
 struct MultTrM{ // ztrmm, dtrmm, ctrmm, strmm
@@ -1609,154 +1179,10 @@ struct SolveTrM{ // ztrsm, dtrsm, ctrsm, strsm
 		}
 	}
 };
+*/
 
-
-//// Common/simple LAPACK routines
-
-template <class T>
-void Conjugate(size_t n, T *x, size_t incx){ // zlacgv, clacgv
-	while(n --> 0){
-		_RealOrComplexChooser<T>::_conj(*x);
-		x += incx;
-	}
-}
-
-template <char uplo='A'>
-struct CopyMatrix{ // zlacpy, dlacpy, clacpy, slacpy
-	template <class T>
-	CopyMatrix(size_t m, size_t n, const T *a, size_t lda, T *b, size_t ldb){
-		if('U' == uplo){
-			for(size_t j = 0; j < n; ++j){
-				size_t ilimit = j+1; if(m < ilimit){ ilimit = m; }
-				for(size_t i = 0; i < ilimit; ++i){
-					b[i+j*ldb] = a[i+j*lda];
-				}
-			}
-		}else if('L' == uplo){
-			for(size_t j = 0; j < n; ++j){
-				for(size_t i = j; i < m; ++i){
-					b[i+j*ldb] = a[i+j*lda];
-				}
-			}
-		}else{
-			for(size_t j = 0; j < n; ++j){
-				for(size_t i = 0; i < m; ++i){
-					b[i+j*ldb] = a[i+j*lda];
-				}
-			}
-		}
-	}
-};
-
-template <char uplo='F'>
-struct SetMatrix{ // zlaset, dlaset, claset, slaset
-	template <class TA, class TB, class T>
-	SetMatrix(size_t m, size_t n, const TA &offdiag, const TB &diag, T *a, size_t lda){
-		const size_t minmn = ((m < n) ? m : n);
-		if('U' == uplo){
-			for(size_t j = 1; j < n; ++j){
-				size_t ilimit = m; if(j < ilimit){ ilimit = j; }
-				for(size_t i = 0; i < ilimit; ++i){
-					a[i+j*lda] = offdiag;
-				}
-			}
-		}else if('L' == uplo){
-			for(size_t j = 0; j < minmn; ++j){
-				for(size_t i = j+1; i < m; ++i){
-					a[i+j*lda] = offdiag;
-				}
-			}
-		}else{
-			for(size_t j = 0; j < n; ++j){
-				for(size_t i = 0; i < m; ++i){
-					a[i+j*lda] = offdiag;
-				}
-			}
-		}
-		for(size_t i = 0; i < minmn; ++i){
-			a[i+i*lda] = diag;
-		}
-	}
-};
-
-#if defined(RNP_TBLAS_USE_RANDOM)
-#include "Random.h"
-
-template <class T>
-struct _RealOrComplexRand{
-	typedef T value_type;
-	typedef T real_type;
-
-	inline static void randvec(size_t n, value_type *x, int iseed[4] = NULL){
-		RNP::Random::RandomRealsUniform01(n, x, iseed);
-	}
-	inline static size_t numreals(){ return 1; }
-};
-template <class T>
-struct _RealOrComplexRand<std::complex<T> >{
-	typedef std::complex<T> value_type;
-	typedef typename std::complex<T>::value_type real_type;
-
-	inline static void randvec(size_t n, value_type *x, int iseed[4] = NULL){
-		RNP::Random::RandomRealsUniform01((sizeof(value_type)/sizeof(real_type))*n, reinterpret_cast<real_type*>(x), iseed);
-	}
-	inline static size_t numreals(){ return 2; }
-};
-
-// dist specifies the distribution of the random numbers:
-//      = 1:  real and imaginary parts each uniform (0,1)
-//      = 2:  real and imaginary parts each uniform (-1,1)
-//      = 3:  real and imaginary parts each normal (0,1)
-//      = 4:  uniformly distributed on the disc abs(z) < 1
-//      = 5:  uniformly distributed on the circle abs(z) = 1
-template <int dist=2>
-struct RandomVector{
-	template <class T>
-	RandomVector(size_t n, T *x, int iseed[4] = NULL){
-		using namespace std;
-		const size_t nr = _RealOrComplexRand<T>::numreals();
-		if(1 == nr){
-			_RealOrComplexRand<T>::randvec(n, x, iseed);
-			return;
-		}else if(2 == nr){
-			static const size_t chunksize = 64;
-			typedef typename _RealOrComplexRand<T>::real_type real_type;
-			real_type buf[2*chunksize];
-			for(size_t i = 0; i < n; i += chunksize){
-				size_t chunk = n-i; if(chunksize < chunk){ chunk = chunksize; }
-				_RealOrComplexRand<real_type>::randvec(2*chunk, buf, iseed);
-				if(1 == dist){
-					for(size_t j = 0; j < chunk; ++j){
-						x[i+j] = T(buf[2*j+0], buf[2*j+1]);
-					}
-				}else if(2 == dist){
-					for(size_t j = 0; j < chunk; ++j){
-						x[i+j] = T(2*buf[2*j+0]-1, 2*buf[2*j+1]-1);
-					}
-				}else if(3 == dist){
-					for(size_t j = 0; j < chunk; ++j){
-						x[i+j] = sqrt(-2*log(buf[2*j+0])) * exp(T(0,2*M_PI*buf[2*j+1]));
-					}
-				}else if(4 == dist){
-					for(size_t j = 0; j < chunk; ++j){
-						x[i+j] = sqrt(buf[2*j+0]) * exp(T(0,2*M_PI*buf[2*j+1]));
-					}
-				}else if(5 == dist){
-					for(size_t j = 0; j < chunk; ++j){
-						x[i+j] = exp(T(0,2*M_PI*buf[2*j+0]));
-					}
-				}
-			}
-		}
-	}
-};
-#endif // RNP_TBLAS_USE_RANDOM
 
 }; // namespace TBLAS
 }; // namespace RNP
 
-#ifdef RNP_HAVE_BLAS
-# include "TBLAS_ext.h"
-#endif
-
-#endif // _RNP_TBLAS_H_
+#endif // _RNP_TBLAS_EXT_H_
