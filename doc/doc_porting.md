@@ -15,6 +15,10 @@ This can be done relatively simply by providing explicit template specialization
 Doing this will not achieve performance on par with optimized LAPACK libraries since all blocking has been stripped from the LAPACK routines.
 Future developments may restore some blocking functionality.
 
+The BLAS and LAPACK bindings to the core API are being added right now.
+In the near future, using vendor provided versions of these libraries will be as simple as defining the preprocessor macros `RNP_HAVE_BLAS` and `RNP_HAVE_LAPACK`.
+Support currently exists for most of level 1 BLAS, and complex `zgemv` and `zgemm` for non-transposed matrices.
+
 ## Library origins
 
 * IO - None.
