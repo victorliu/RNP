@@ -1,21 +1,15 @@
-#ifndef _RNP_EIGENSYSTEMS_H_
-#define _RNP_EIGENSYSTEMS_H_
+#ifndef _RNP_EIGENSYSTEMS_LAPACK_H_
+#define _RNP_EIGENSYSTEMS_LAPACK_H_
 
 #include <cstddef>
 #include <complex>
 
-namespace RNP{
+extern "C" void zgeev_(const char *jobvl, const char *jobvr, const long int &n, 
+	std::complex<double> *a, const long int &lda, std::complex<double> *w, std::complex<double> *vl, 
+	const long int &ldvl, std::complex<double> *vr, const long int &ldvr, std::complex<double> *work, 
+	const long int &lwork, double *rwork, long int *info);
 
-// This is identical to Eigensystem below, except no workspace is required.
-// The computation is performed by modified Jacobi rotations, which is
-// substantially slower than the QR iteration in Eigensystem, but the
-// relative accuracy of the results could be better.
-int Eigensystem_jacobi(size_t n, 
-	std::complex<double> *a, size_t lda,
-	std::complex<double> *eval,
-	std::complex<double> *vl, size_t ldvl, std::complex<double> *vr, size_t ldvr,
-	std::complex<double> *work, double *rwork);
-	
+namespace RNP{
 
 // Eigensystem computes for an N-by-N complex nonsymmetric matrix A, the
 // eigenvalues and, optionally, the left and/or right eigenvectors.
@@ -69,11 +63,46 @@ int Eigensystem_jacobi(size_t n,
 //               eigenvalues, and no eigenvectors have been computed;
 //               elements and i+1:N of W contain eigenvalues which have
 //               converged.
-int Eigensystem(size_t n, 
+inline int Eigensystem(size_t n,
 	std::complex<double> *a, size_t lda,
 	std::complex<double> *eval,
 	std::complex<double> *vl, size_t ldvl, std::complex<double> *vr, size_t ldvr,
-	std::complex<double> *work = NULL, double *rwork = NULL);
+	std::complex<double> *work_, double *rwork_)
+{
+	if(n == 0) {
+		return 0;
+	}
+	char jobvl[2] = "N";
+	char jobvr[2] = "N";
+	if(vl != NULL){ jobvl[0] = 'V'; }
+	if(vr != NULL){ jobvr[0] = 'V'; }
+	long int info;
+	
+	std::complex<double> *work = work_;
+	double *rwork = rwork_;
+	if(NULL == rwork_){
+		rwork = new double[2*n];
+	}
+	long int lwork = 2*n;
+	if(NULL == work_){
+		lwork = -1;
+		std::complex<double> zlen;
+		zgeev_(jobvl, jobvr, n, a, lda, eval, vl, ldvl, vr, ldvr, &zlen, lwork, rwork, &info);
+		lwork = (long int)(zlen.real());
+		work = new std::complex<double>[lwork];
+	}
+	zgeev_(jobvl, jobvr, n, a, lda, eval, vl, ldvl, vr, ldvr, work, lwork, rwork, &info);
+	
+	if(NULL == work_){
+		delete [] work;
+	}
+	if(NULL == rwork_){
+		delete [] rwork;
+	}
+	
+	return info;
+}
+
 /*
 // zheev
 template <char uplo>
@@ -91,4 +120,4 @@ int SymmetricEigensystem(size_t n,
 */
 }; // namespace RNP
 
-#endif // _RNP_EIGENSYSTEMS_H_
+#endif // _RNP_EIGENSYSTEMS_LAPACK_H_
