@@ -50,7 +50,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 */
 
-static void zggbal_(const char *job, size_t n, std::complex<double> *a, size_t 
+static void zggbal_(char job, size_t n, std::complex<double> *a, size_t 
 		lda, std::complex<double> *b, size_t ldb, int *ilo, int *ihi, 
 		double *lscale, double *rscale, double *work)
 {
@@ -172,7 +172,7 @@ static void zggbal_(const char *job, size_t n, std::complex<double> *a, size_t
 		return;
 	}
 
-	if (job[0] == 'N'){
+	if (job == 'N'){
 		*ilo = 1;
 		*ihi = n;
 		for (i = 1; i <= (int)n; ++i) {
@@ -183,7 +183,7 @@ static void zggbal_(const char *job, size_t n, std::complex<double> *a, size_t
 	}
 
 	l = n;
-	if (job[0] != 'S') {
+	if (job != 'S') {
 		// Permute the matrices A and B to isolate the eigenvalues.
 
 		// Find row with one nonzero in columns 1 through L
@@ -300,7 +300,7 @@ static void zggbal_(const char *job, size_t n, std::complex<double> *a, size_t
 	*ilo = k;
 	*ihi = l;
 
-	if (job[0] == 'P') { // if permutations was all that was requested, end here
+	if (job == 'P') { // if permutations was all that was requested, end here
 		for (i = *ilo; i <= *ihi; ++i) {
 			lscale[i] = 1.;
 			rscale[i] = 1.;
@@ -506,7 +506,7 @@ static void zggbal_(const char *job, size_t n, std::complex<double> *a, size_t
 }
 
 
-void zggbak_(char *job, char *side, int n, int ilo, 
+void zggbak_(char job, char side, int n, int ilo, 
 		int ihi, const double *lscale, const double *rscale, int m, 
 		std::complex<double> *v, int ldv)
 {
@@ -576,16 +576,16 @@ void zggbak_(char *job, char *side, int n, int ilo,
 	int v_offset = 1 + ldv;
 	v -= v_offset;
 
-	const bool rightv = (side[0] == 'R');
-	const bool leftv = (side[0] == 'L');
+	const bool rightv = (side == 'R');
+	const bool leftv = (side == 'L');
 
-	if (n == 0 || m == 0 || job[0] == 'N') {
+	if (n == 0 || m == 0 || job == 'N') {
 		return;
 	}
 
 	if (ilo != ihi) {
 		// Backward balance
-		if ((job[0] == 'S') || (job[0] == 'B')) {
+		if ((job == 'S') || (job == 'B')) {
 			// Backward transformation on right eigenvectors
 			if (rightv) {
 				for (int i = ilo; i <= ihi; ++i) {
@@ -603,7 +603,7 @@ void zggbak_(char *job, char *side, int n, int ilo,
 	}
 
 	// Backward permutation
-	if ((job[0] == 'P') || (job[0] == 'B')) {
+	if ((job == 'P') || (job == 'B')) {
 		// Backward permutation on right eigenvectors
 
 		if (rightv) {
@@ -646,7 +646,7 @@ void zggbak_(char *job, char *side, int n, int ilo,
 	}
 }
 
-static int zhgeqz_(char *job, char *compq, char *compz, size_t n, 
+static int zhgeqz_(char job, char compq, char compz, size_t n, 
 	size_t ilo, size_t ihi, std::complex<double> *h, size_t ldh, 
 	std::complex<double> *t, size_t ldt, std::complex<double> *alpha, std::complex<double> *
 	beta, std::complex<double> *q, size_t ldq, std::complex<double> *z, size_t 
@@ -849,36 +849,36 @@ static int zhgeqz_(char *job, char *compq, char *compz, size_t n,
 	--rwork;
 
 
-	if(job[0] == 'E'){
+	if(job == 'E'){
 		ilschr = false;
 		ischur = 1;
-	}else if(job[0] == 'S'){
+	}else if(job == 'S'){
 		ilschr = true;
 		ischur = 2;
 	}else{
 		ischur = 0;
 	}
 
-	if(compq[0] == 'N'){
+	if(compq == 'N'){
 		ilq = false;
 		icompq = 1;
-	}else if(compq[0] == 'V'){
+	}else if(compq == 'V'){
 		ilq = true;
 		icompq = 2;
-	}else if(compq[0] == 'I'){
+	}else if(compq == 'I'){
 		ilq = true;
 		icompq = 3;
 	}else{
 		icompq = 0;
 	}
 
-	if(compz[0] == 'N'){
+	if(compz == 'N'){
 		ilz = false;
 		icompz = 1;
-	}else if(compz[0] == 'V'){
+	}else if(compz == 'V'){
 		ilz = true;
 		icompz = 2;
-	}else if(compz[0] == 'I'){
+	}else if(compz == 'I'){
 		ilz = true;
 		icompz = 3;
 	}else{
@@ -1318,7 +1318,7 @@ L70_zhgeqz:
 	return 0;
 }
 
-static int ztgevc_(const char *howmny, bool *select, 
+static int ztgevc_(char howmny, bool *select, 
 		size_t n, std::complex<double> *s, size_t lds, std::complex<double> *p, size_t 
 		ldp, std::complex<double> *vl, size_t ldvl, std::complex<double> *vr, size_t 
 		ldvr, size_t mm, size_t *m, std::complex<double> *work, double *rwork)
@@ -1510,15 +1510,15 @@ static int ztgevc_(const char *howmny, bool *select,
 	--rwork;
 
 	/* Function Body */
-	if (howmny[0] == 'A') {
+	if (howmny == 'A') {
 		ihwmny = 1;
 		ilall = true;
 		ilback = false;
-	} else if (howmny[0] == 'S') {
+	} else if (howmny == 'S') {
 		ihwmny = 2;
 		ilall = false;
 		ilback = false;
-	} else if (howmny[0] == 'B') {
+	} else if (howmny == 'B') {
 		ihwmny = 3;
 		ilall = true;
 		ilback = true;
@@ -2137,7 +2137,7 @@ int RNP::GeneralizedEigensystem(size_t n,
 	ileft = 1;
 	int iright = n + 1;
 	irwrk = iright + n;
-	zggbal_("P", n, &a[a_offset], lda, &b[b_offset], ldb, &ilo, &ihi, &rwork[ileft], &rwork[iright], &rwork[irwrk]);
+	zggbal_('P', n, &a[a_offset], lda, &b[b_offset], ldb, &ilo, &ihi, &rwork[ileft], &rwork[iright], &rwork[irwrk]);
 
 	// Reduce B to triangular form (QR decomposition of B)
 	// (Complex Workspace: need N)
@@ -2195,22 +2195,22 @@ int RNP::GeneralizedEigensystem(size_t n,
 	// (Real Workspace: need N)
 
 	iwrk = itau;
-	char chtemp[1];
+	char chtemp;
 	if (ilv) {
-		chtemp[0] = 'S';
+		chtemp = 'S';
 	} else {
-		chtemp[0] = 'E';
+		chtemp = 'E';
 	}
-	char jobvl[1], jobvr[1];
+	char jobvl, jobvr;
 	if(ilvl){
-		jobvl[0] = 'V';
+		jobvl = 'V';
 	}else{
-		jobvl[0] = 'N';
+		jobvl = 'N';
 	}
 	if(ilvr){
-		jobvr[0] = 'V';
+		jobvr = 'V';
 	}else{
-		jobvr[0] = 'N';
+		jobvr = 'N';
 	}
 	int ierr = zhgeqz_(chtemp, jobvl, jobvr, n, ilo, ihi, &a[a_offset], lda, &b[
 			b_offset], ldb, &alpha[1], &beta[1], &vl[vl_offset], ldvl, &vr[
@@ -2232,7 +2232,7 @@ int RNP::GeneralizedEigensystem(size_t n,
 
 	if (ilv) {
 		size_t in;
-		ierr = ztgevc_("B", ldumma, n, &a[a_offset], lda, &b[b_offset], ldb, 
+		ierr = ztgevc_('B', ldumma, n, &a[a_offset], lda, &b[b_offset], ldb, 
 				&vl[vl_offset], ldvl, &vr[vr_offset], ldvr, n, &in, &work[
 				iwrk], &rwork[irwrk]);
 		if (ierr != 0) {
@@ -2243,7 +2243,7 @@ int RNP::GeneralizedEigensystem(size_t n,
 		// (Workspace: none needed)
 
 		if (ilvl) {
-			zggbak_("P", "L", n, ilo, ihi, &rwork[ileft], &rwork[iright], n, &vl[vl_offset], ldvl);
+			zggbak_('P', 'L', n, ilo, ihi, &rwork[ileft], &rwork[iright], n, &vl[vl_offset], ldvl);
 			for (size_t jc = 1; jc <= n; ++jc) {
 				temp = 0.;
 				for (size_t jr = 1; jr <= n; ++jr) {
@@ -2259,7 +2259,7 @@ int RNP::GeneralizedEigensystem(size_t n,
 			}
 		}
 		if (ilvr) {
-			zggbak_("P", "R", n, ilo, ihi, &rwork[ileft], &rwork[iright], n, &vr[vr_offset], ldvr);
+			zggbak_('P', 'R', n, ilo, ihi, &rwork[ileft], &rwork[iright], n, &vr[vr_offset], ldvr);
 			for (size_t jc = 1; jc <= n; ++jc) {
 				temp = 0.;
 				for (size_t jr = 1; jr <= n; ++jr) {
@@ -2452,7 +2452,7 @@ int RNP::GeneralizedSchurDecomposition(size_t n,
     ileft = 1;
     iright = n + 1;
     irwrk = iright + n;
-    zggbal_("P", n, &a[a_offset], lda, &b[b_offset], ldb, &ilo, &ihi, &rwork[ileft], &rwork[iright], &rwork[irwrk]);
+    zggbal_('P', n, &a[a_offset], lda, &b[b_offset], ldb, &ilo, &ihi, &rwork[ileft], &rwork[iright], &rwork[irwrk]);
 
 	// Reduce B to triangular form (QR decomposition of B)
 	// (Complex Workspace: need N, prefer N*NB)
@@ -2504,18 +2504,18 @@ int RNP::GeneralizedSchurDecomposition(size_t n,
 	// (Complex Workspace: need N)
 	// (Real Workspace: need N)
     iwrk = itau;
-	char jobvl[1], jobvr[1];
+	char jobvl, jobvr;
 	if(ilvsl){
-		jobvl[0] = 'V';
+		jobvl = 'V';
 	}else{
-		jobvl[0] = 'N';
+		jobvl = 'N';
 	}
 	if(ilvsr){
-		jobvr[0] = 'V';
+		jobvr = 'V';
 	}else{
-		jobvr[0] = 'N';
+		jobvr = 'N';
 	}
-	int ierr = zhgeqz_("S", jobvl, jobvr, n, ilo, ihi, &a[a_offset], lda, &b[
+	int ierr = zhgeqz_('S', jobvl, jobvr, n, ilo, ihi, &a[a_offset], lda, &b[
 			b_offset], ldb, &alpha[1], &beta[1], &vsl[vsl_offset], ldvsl, &vsr[
 			vsr_offset], ldvsr, &work[iwrk], 2*n + 1 - iwrk, &rwork[irwrk]);
 
@@ -2533,10 +2533,10 @@ int RNP::GeneralizedSchurDecomposition(size_t n,
 	// Apply back-permutation to VSL and VSR
 	// (Workspace: none needed)
     if (ilvsl) {
-		zggbak_("P", "L", n, ilo, ihi, &rwork[ileft], &rwork[iright], n, &vsl[vsl_offset], ldvsl);
+		zggbak_('P', 'L', n, ilo, ihi, &rwork[ileft], &rwork[iright], n, &vsl[vsl_offset], ldvsl);
     }
     if (ilvsr) {
-		zggbak_("P", "R", n, ilo, ihi, &rwork[ileft], &rwork[iright], n, &vsr[vsr_offset], ldvsr);
+		zggbak_('P', 'R', n, ilo, ihi, &rwork[ileft], &rwork[iright], n, &vsr[vsr_offset], ldvsr);
     }
 
 	// Undo scaling
