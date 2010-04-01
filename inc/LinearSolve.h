@@ -32,4 +32,8 @@ struct LinearSolve{
 
 }; // namespace RNP
 
+#ifdef RNP_HAVE_LAPACK
+# include "LinearSolve_lapack.h"
+#endif
+
 #endif // _RNP_LINEAR_SOLVE_H_
