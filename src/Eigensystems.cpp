@@ -4449,7 +4449,7 @@ int RNP::Eigensystem(size_t n,
 	std::complex<double> *a, size_t lda,
 	std::complex<double> *w,
 	std::complex<double> *vl, size_t ldvl, std::complex<double> *vr, size_t ldvr,
-	std::complex<double> *work, double *rwork)
+	std::complex<double> *work_, double *rwork_)
 {
 	using namespace std;
 
@@ -4519,6 +4519,15 @@ int RNP::Eigensystem(size_t n,
 	if(n == 0) {
 		return 0;
 	}
+	
+	std::complex<double> *work = work_;
+	double *rwork = rwork_;
+	if(NULL == work_){
+		work = new std::complex<double>[2*n];
+	}
+	if(NULL == rwork_){
+		rwork = new double[2*n];
+	}
 
 	const double eps = 2*std::numeric_limits<double>::epsilon();
 	const double smlnum = sqrt(std::numeric_limits<double>::min()) / eps;
@@ -4556,7 +4565,6 @@ int RNP::Eigensystem(size_t n,
 	size_t iwrk = itau + n;
 	RNP::TLASupport::HessenbergReduction(n, ilo-1, ihi-1, a, lda, &work[itau], &work[iwrk]);
 
-	size_t irwork;
 	int info;
 	if(wantvl){
 		RNP::TBLAS::CopyMatrix<'L'>(n, n, a, lda, vl, ldvl);
@@ -4604,11 +4612,11 @@ int RNP::Eigensystem(size_t n,
 	}
 
 	if(info == 0){
+		size_t irwork = ibal + n;
 		if(wantvl || wantvr){
 			// Compute left and/or right eigenvectors
 			// (CWorkspace: need 2*N)
 			// (RWorkspace: need 2*N)
-			irwork = ibal + n;
 			size_t nout;
 			ztrevc_('B', NULL, n, a, lda, vl, ldvl, vr, ldvr, n, &nout, &work[iwrk], &rwork[irwork]);
 		}
@@ -4659,6 +4667,14 @@ int RNP::Eigensystem(size_t n,
 			RNP::TLASupport::RescaleMatrix<'G'>(0, 0, cscale, anrm, ilo-1, 1, w, n);
 		}
 	}
+	
+	if(NULL == work_){
+		delete [] work;
+	}
+	if(NULL == rwork_){
+		delete [] rwork;
+	}
+	
 	return info;
 }
 
