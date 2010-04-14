@@ -4449,7 +4449,7 @@ int RNP::Eigensystem(size_t n,
 	std::complex<double> *a, size_t lda,
 	std::complex<double> *w,
 	std::complex<double> *vl, size_t ldvl, std::complex<double> *vr, size_t ldvr,
-	std::complex<double> *work_, double *rwork_)
+	std::complex<double> *work_, double *rwork_, size_t lwork_)
 {
 	using namespace std;
 
@@ -4519,10 +4519,14 @@ int RNP::Eigensystem(size_t n,
 	if(n == 0) {
 		return 0;
 	}
+	if((size_t)-1 == lwork_){
+		work_[0] = (double)(2*n);
+		return 0;
+	}
 	
 	std::complex<double> *work = work_;
 	double *rwork = rwork_;
-	if(NULL == work_){
+	if(NULL == work_ || lwork_ < 2*n){
 		work = new std::complex<double>[2*n];
 	}
 	if(NULL == rwork_){
@@ -4668,7 +4672,7 @@ int RNP::Eigensystem(size_t n,
 		}
 	}
 	
-	if(NULL == work_){
+	if(NULL == work_ || lwork_ < 2*n){
 		delete [] work;
 	}
 	if(NULL == rwork_){

@@ -67,7 +67,7 @@ inline int Eigensystem(size_t n,
 	std::complex<double> *a, size_t lda,
 	std::complex<double> *eval,
 	std::complex<double> *vl, size_t ldvl, std::complex<double> *vr, size_t ldvr,
-	std::complex<double> *work_, double *rwork_)
+	std::complex<double> *work_, double *rwork_, size_t lwork_)
 {
 	if(n == 0) {
 		return 0;
@@ -77,14 +77,20 @@ inline int Eigensystem(size_t n,
 	if(vl != NULL){ jobvl[0] = 'V'; }
 	if(vr != NULL){ jobvr[0] = 'V'; }
 	long int info;
+
+	if((size_t)-1 == lwork_){
+		zgeev_(jobvl, jobvr, n, a, lda, eval, vl, ldvl, vr, ldvr, work_, lwork_, rwork_, &info);
+		return 0;
+	}
 	
 	std::complex<double> *work = work_;
 	double *rwork = rwork_;
 	if(NULL == rwork_){
 		rwork = new double[2*n];
 	}
-	long int lwork = 2*n;
-	if(NULL == work_){
+	if(0 == lwork_){ lwork_ = 2*n; }
+	long int lwork = lwork_;
+	if(NULL == work_ || lwork < (long int)(2*n)){
 		lwork = -1;
 		std::complex<double> zlen;
 		zgeev_(jobvl, jobvr, n, a, lda, eval, vl, ldvl, vr, ldvr, &zlen, lwork, rwork, &info);
@@ -93,7 +99,7 @@ inline int Eigensystem(size_t n,
 	}
 	zgeev_(jobvl, jobvr, n, a, lda, eval, vl, ldvl, vr, ldvr, work, lwork, rwork, &info);
 	
-	if(NULL == work_){
+	if(NULL == work_ || lwork < (long int)(2*n)){
 		delete [] work;
 	}
 	if(NULL == rwork_){

@@ -73,7 +73,7 @@ int Eigensystem(size_t n,
 	std::complex<double> *a, size_t lda,
 	std::complex<double> *eval,
 	std::complex<double> *vl, size_t ldvl, std::complex<double> *vr, size_t ldvr,
-	std::complex<double> *work = NULL, double *rwork = NULL);
+	std::complex<double> *work = NULL, double *rwork = NULL, size_t lwork = 0);
 /*
 // zheev
 template <char uplo>
