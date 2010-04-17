@@ -61,7 +61,8 @@ equal to 1 and largest component real.</p>
     size_t n, std::complex&lt;double&gt;* a, size_t lda,
     std::complex&lt;double&gt;* eval,
     std::complex&lt;double&gt;* evec, size_t ldvec,
-    std::complex&lt;double&gt; *work, double *rwork);
+    std::complex&lt;double&gt; *work = NULL, double *rwork = NULL,
+    size_t lwork = 0);
 </code></pre>
 
 <h3>Arguments:</h3>
@@ -86,9 +87,15 @@ If <code>NULL</code>, then no right eigenvectors will be computed.</dd>
 <dt>ldvr</dt>
 <dd>Leading dimension of matrix <code>vr</code>.</dd>
 <dt>work</dt>
-<dd>Pointer to complex workspace, should be length <code>2*n</code>.</dd>
+<dd>Pointer to complex workspace, should be length <code>2*n</code>.
+If <code>NULL</code>, the workspace is internally allocated and freed.</dd>
 <dt>rwork</dt>
-<dd>Pointer to real workspace, should be length <code>2*n</code>.</dd>
+<dd>Pointer to real workspace, should be length <code>2*n</code>.
+If <code>NULL</code>, the workspace is internally allocated and freed.</dd>
+<dt>lwork</dt>
+<dd>Length of the workspace parameter <code>work</code>. If set to <code>0</code>, then it is assumed that <code>work</code> is of sufficiently large size.
+If set to <code>-1</code>, a workspace query is performed, and the function returns immediately and the optimal workspace size for the provided arguments is stored in <code>work[0]</code>.
+The other pointer arguments are not referenced.</dd>
 </dl>
 
 <h2>Eigensystem_jacobi<a name="RNP_Eigensystem_jacobi" /></h2>

@@ -45,7 +45,8 @@ Return value:
 		size_t n, std::complex<double>* a, size_t lda,
 		std::complex<double>* eval,
 		std::complex<double>* evec, size_t ldvec,
-		std::complex<double> *work, double *rwork);
+		std::complex<double> *work = NULL, double *rwork = NULL,
+		size_t lwork = 0);
 
 ### Arguments:
 
@@ -69,8 +70,14 @@ Return value:
 	Leading dimension of matrix `vr`.
 =work=
 	Pointer to complex workspace, should be length `2*n`.
+	If `NULL`, the workspace is internally allocated and freed.
 =rwork=
 	Pointer to real workspace, should be length `2*n`.
+	If `NULL`, the workspace is internally allocated and freed.
+=lwork=
+	Length of the workspace parameter `work`. If set to `0`, then it is assumed that `work` is of sufficiently large size.
+	If set to `-1`, a workspace query is performed, and the function returns immediately and the optimal workspace size for the provided arguments is stored in `work[0]`.
+	The other pointer arguments are not referenced.
 
 ## Eigensystem_jacobi<a name="RNP_Eigensystem_jacobi" />
 
