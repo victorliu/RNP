@@ -14,6 +14,7 @@ Optionally, if the RNP Random module is used, define `RNP_TBLAS_USE_RANDOM` to e
 ## Contents
 
 ### BLAS Level 1 functions
+* [Fill](#TBLAS_Fill)
 * [Swap](#TBLAS_Swap)
 * [Scale](#TBLAS_Scale)
 * [Copy](#TBLAS_Copy)
@@ -24,6 +25,7 @@ Optionally, if the RNP Random module is used, define `RNP_TBLAS_USE_RANDOM` to e
 * [MaximumIndex](#TBLAS_MaximumIndex)
 
 ### BLAS Level 2 functions
+* [Axpy](#TBLAS_Axpy_mat)
 * [MultMV](#TBLAS_MultMV)
 * [MultTrV](#TBLAS_MultTrV)
 * [SolveTrV](#TBLAS_SolveTrV)
@@ -39,6 +41,30 @@ Optionally, if the RNP Random module is used, define `RNP_TBLAS_USE_RANDOM` to e
 * [CopyMatrix](#TBLAS_CopyMatrix)
 * [SetMatrix](#TBLAS_SetMatrix)
 * [RandomVector](#TBLAS_RandomVector)
+
+
+---
+## Fill<a name="TBLAS_Fill" />
+
+Fills a vector with a constant value.
+
+This function does not correspond to any BLAS function.
+
+### Prototype
+
+	template <class TV, class T>
+	void Fill(size_t n, const TV &value, T *x, size_t incx);
+
+### Arguments:
+
+=n=
+	Length of the vector.
+=value=
+	The value each element will be set to.
+=x=
+	Pointer to the first element of the vector.
+=incx=
+	Increment (stride) of the vector.
 
 ---
 ## Swap<a name="TBLAS_Swap" />
@@ -267,6 +293,38 @@ This function corresponds to BLAS functions `izamax`, `idamax`, `icamax`, and `i
 	Pointer to the first element of the vector.
 =incx=
 	Increment (stride) of the vector.
+
+
+
+
+---
+## Axpy<a name="TBLAS_Axpy_mat" />
+
+Performs the scaled addition of one matrix to another (`y <-- alpha * x + y`).
+
+This function does not correspond to any BLAS function.
+
+### Prototype
+
+	template <class S, class T>
+	void Axpy(size_t m, size_t n, const S &alpha, const T *x, size_t ldx, T *y, size_t ldy);
+
+### Arguments:
+
+=m=
+	Number of rows of the matrices `x` and `y`.
+=n=
+	Number of columns of the matrices.
+=alpha=
+	The scale factor applied to `x`.
+=x=
+	Pointer to the first element of matrix `x`.
+=ldx=
+	Leading dimension of matrix `x` (typically the number of rows of `x` unless `x` is a submatrix of a larger matrix).
+=y=
+	Pointer to the first element of vector `y`.
+=incy=
+	Increment (stride) of the vector `y`.
 
 
 

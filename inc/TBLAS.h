@@ -89,6 +89,14 @@ struct _RealOrComplexChooser<std::complex<T> >{
 	}
 };
 
+template <class TV, class T>
+void Fill(size_t n, const TV &value, T *x, size_t incx){
+	while(n --> 0){
+		*x = value;
+		x += incx;
+	}
+}
+
 //// Level 1
 
 template <class T>
@@ -120,6 +128,13 @@ void Axpy(size_t n, const S &alpha, const T *x, size_t incx, T *y, size_t incy){
 	while(n --> 0){
 		(*y) += alpha*(*x);
 		x += incx; y += incy;
+	}
+}
+
+template <class S, class T>
+void Axpy(size_t m, size_t n, const S &alpha, const T *x, size_t ldx, T *y, size_t ldy){
+	for(size_t j = 0; j < n; ++j){
+		Axpy(m, alpha, x[0+j*ldx], 1, y[0+j*ldy], 1);
 	}
 }
 

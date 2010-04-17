@@ -19,6 +19,7 @@ Optionally, if the RNP Random module is used, define <code>RNP_TBLAS_USE_RANDOM<
 <h3>BLAS Level 1 functions</h3>
 
 <ul>
+<li><a href="#TBLAS_Fill">Fill</a></li>
 <li><a href="#TBLAS_Swap">Swap</a></li>
 <li><a href="#TBLAS_Scale">Scale</a></li>
 <li><a href="#TBLAS_Copy">Copy</a></li>
@@ -33,6 +34,7 @@ Optionally, if the RNP Random module is used, define <code>RNP_TBLAS_USE_RANDOM<
 <h3>BLAS Level 2 functions</h3>
 
 <ul>
+<li><a href="#TBLAS_Axpy_mat">Axpy</a></li>
 <li><a href="#TBLAS_MultMV">MultMV</a></li>
 <li><a href="#TBLAS_MultTrV">MultTrV</a></li>
 <li><a href="#TBLAS_SolveTrV">SolveTrV</a></li>
@@ -58,6 +60,33 @@ Optionally, if the RNP Random module is used, define <code>RNP_TBLAS_USE_RANDOM<
 <li><a href="#TBLAS_RandomVector">RandomVector</a></li>
 </ul>
 
+
+<hr />
+
+<h2>Fill<a name="TBLAS_Fill" /></h2>
+
+<p>Fills a vector with a constant value.</p>
+
+<p>This function does not correspond to any BLAS function.</p>
+
+<h3>Prototype</h3>
+
+<pre><code>template &lt;class TV, class T&gt;
+void Fill(size_t n, const TV &amp;value, T *x, size_t incx);
+</code></pre>
+
+<h3>Arguments:</h3>
+
+<dl>
+<dt>n</dt>
+<dd>Length of the vector.</dd>
+<dt>value</dt>
+<dd>The value each element will be set to.</dd>
+<dt>x</dt>
+<dd>Pointer to the first element of the vector.</dd>
+<dt>incx</dt>
+<dd>Increment (stride) of the vector.</dd>
+</dl>
 
 <hr />
 
@@ -310,6 +339,39 @@ size_t MaximumIndex(size_t n, const T *x, size_t incx);
 <dd>Pointer to the first element of the vector.</dd>
 <dt>incx</dt>
 <dd>Increment (stride) of the vector.</dd>
+</dl>
+
+<hr />
+
+<h2>Axpy<a name="TBLAS_Axpy_mat" /></h2>
+
+<p>Performs the scaled addition of one matrix to another (<code>y &lt;-- alpha * x + y</code>).</p>
+
+<p>This function does not correspond to any BLAS function.</p>
+
+<h3>Prototype</h3>
+
+<pre><code>template &lt;class S, class T&gt;
+void Axpy(size_t m, size_t n, const S &amp;alpha, const T *x, size_t ldx, T *y, size_t ldy);
+</code></pre>
+
+<h3>Arguments:</h3>
+
+<dl>
+<dt>m</dt>
+<dd>Number of rows of the matrices <code>x</code> and <code>y</code>.</dd>
+<dt>n</dt>
+<dd>Number of columns of the matrices.</dd>
+<dt>alpha</dt>
+<dd>The scale factor applied to <code>x</code>.</dd>
+<dt>x</dt>
+<dd>Pointer to the first element of matrix <code>x</code>.</dd>
+<dt>ldx</dt>
+<dd>Leading dimension of matrix <code>x</code> (typically the number of rows of <code>x</code> unless <code>x</code> is a submatrix of a larger matrix).</dd>
+<dt>y</dt>
+<dd>Pointer to the first element of vector <code>y</code>.</dd>
+<dt>incy</dt>
+<dd>Increment (stride) of the vector <code>y</code>.</dd>
 </dl>
 
 <hr />
