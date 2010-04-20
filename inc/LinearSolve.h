@@ -13,20 +13,39 @@ struct LinearSolve{
 		if(NULL != info){ *info = 0; }
 		if(0 == n || nRHS == 0){ return; }
 		
-		size_t *ipiv = pivots;
-		if(NULL == pivots){
-			ipiv = new size_t[n];
+		int iinfo = 0;
+		{ // LU decomposition
+			for(size_t j = 0; j < n; ++j){
+				size_t jp = j + RNP::TBLAS::MaximumIndex(n-j, &a[j+j*lda], 1);
+				if(T(0) != a[jp+j*lda]){
+					if(jp != j){
+						RNP::TBLAS::Swap(n, &a[j+0*lda], lda, &a[jp+0*lda], lda);
+						RNP::TBLAS::Swap(nRHS, &b[j+0*lda], ldb, &b[jp+0*lda], ldb);
+					}
+					if(j < n){
+						RNP::TBLAS::Scale(n-j-1, T(1)/a[j+j*lda], &a[j+1+j*lda], 1); // possible overflow when inverting A(j,j)
+					}
+				}else{
+					iinfo = j+1;
+				}
+				if(j < n){
+					RNP::TBLAS::Rank1Update(n-j-1, n-j-1, T(-1), &a[j+1+j*lda], 1, &a[j+(j+1)*lda], lda, &a[j+1+(j+1)*lda], lda);
+				}
+			}
 		}
-		
-		int ret = RNP::TLASupport::LUDecomposition(n, n, a, lda, ipiv);
-		if(0 == ret){
-			RNP::TLASupport::LUSolve<trans>(n, nRHS, a, lda, ipiv, b, ldb);
+		if(0 == iinfo){
+			if(trans == 'T'){
+				RNP::TBLAS::SolveTrM<'L','U','T','N'>(n, nRHS, T(1), a, lda, b, ldb);
+				RNP::TBLAS::SolveTrM<'L','L','T','U'>(n, nRHS, T(1), a, lda, b, ldb);
+			}else if(trans == 'C'){
+				RNP::TBLAS::SolveTrM<'L','U','C','N'>(n, nRHS, T(1), a, lda, b, ldb);
+				RNP::TBLAS::SolveTrM<'L','L','C','U'>(n, nRHS, T(1), a, lda, b, ldb);
+			}else{
+				RNP::TBLAS::SolveTrM<'L','L','N','U'>(n, nRHS, T(1), a, lda, b, ldb);
+				RNP::TBLAS::SolveTrM<'L','U','N','N'>(n, nRHS, T(1), a, lda, b, ldb);
+			}
 		}
-		
-		if(NULL == pivots){
-			delete [] ipiv;
-		}
-		if(NULL != info){ *info = ret; }
+		if(NULL != info){ *info = iinfo; }
 	}
 };
 

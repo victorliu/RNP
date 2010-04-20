@@ -2,6 +2,7 @@
 #include "Random.h"
 #include "IO.h"
 #include <complex>
+#include <cstdlib>
 
 typedef std::complex<double> complex_t;
 
