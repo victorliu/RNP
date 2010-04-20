@@ -134,7 +134,7 @@ void Axpy(size_t n, const S &alpha, const T *x, size_t incx, T *y, size_t incy){
 template <class S, class T>
 void Axpy(size_t m, size_t n, const S &alpha, const T *x, size_t ldx, T *y, size_t ldy){
 	for(size_t j = 0; j < n; ++j){
-		Axpy(m, alpha, x[0+j*ldx], 1, y[0+j*ldy], 1);
+		Axpy(m, alpha, &x[0+j*ldx], 1, &y[0+j*ldy], 1);
 	}
 }
 
