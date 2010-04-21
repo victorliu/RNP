@@ -139,7 +139,7 @@ void Axpy(size_t m, size_t n, const S &alpha, const T *x, size_t ldx, T *y, size
 }
 
 template <class T>
-T Dot(size_t n, const T *x, size_t incx, T *y, size_t incy){
+T Dot(size_t n, const T *x, size_t incx, const T *y, size_t incy){
 	T sum(0);
 	while(n --> 0){
 		sum += (*x)*(*y);
@@ -1733,32 +1733,42 @@ struct RandomVector{
 		if(1 == nr){
 			_RealOrComplexRand<T>::randvec(n, x, iseed);
 			return;
+		}
+	}
+	template <class T>
+	RandomVector(size_t n, std::complex<T> *x, int iseed[4] = NULL){
+		using namespace std;
+		typedef std::complex<T> value_type;
+		const size_t nr = _RealOrComplexRand<value_type>::numreals();
+		if(1 == nr){
+			_RealOrComplexRand<value_type>::randvec(n, x, iseed);
+			return;
 		}else if(2 == nr){
 			static const size_t chunksize = 64;
-			typedef typename _RealOrComplexRand<T>::real_type real_type;
+			typedef typename _RealOrComplexRand<value_type>::real_type real_type;
 			real_type buf[2*chunksize];
 			for(size_t i = 0; i < n; i += chunksize){
 				size_t chunk = n-i; if(chunksize < chunk){ chunk = chunksize; }
 				_RealOrComplexRand<real_type>::randvec(2*chunk, buf, iseed);
 				if(1 == dist){
 					for(size_t j = 0; j < chunk; ++j){
-						x[i+j] = T(buf[2*j+0], buf[2*j+1]);
+						x[i+j] = value_type(buf[2*j+0], buf[2*j+1]);
 					}
 				}else if(2 == dist){
 					for(size_t j = 0; j < chunk; ++j){
-						x[i+j] = T(2*buf[2*j+0]-1, 2*buf[2*j+1]-1);
+						x[i+j] = value_type(2*buf[2*j+0]-1, 2*buf[2*j+1]-1);
 					}
 				}else if(3 == dist){
 					for(size_t j = 0; j < chunk; ++j){
-						x[i+j] = sqrt(-2*log(buf[2*j+0])) * exp(T(0,2*M_PI*buf[2*j+1]));
+						x[i+j] = sqrt(-2*log(buf[2*j+0])) * exp(value_type(0,2*M_PI*buf[2*j+1]));
 					}
 				}else if(4 == dist){
 					for(size_t j = 0; j < chunk; ++j){
-						x[i+j] = sqrt(buf[2*j+0]) * exp(T(0,2*M_PI*buf[2*j+1]));
+						x[i+j] = sqrt(buf[2*j+0]) * exp(value_type(0,2*M_PI*buf[2*j+1]));
 					}
 				}else if(5 == dist){
 					for(size_t j = 0; j < chunk; ++j){
-						x[i+j] = exp(T(0,2*M_PI*buf[2*j+0]));
+						x[i+j] = exp(value_type(0,2*M_PI*buf[2*j+0]));
 					}
 				}
 			}
