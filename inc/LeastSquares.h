@@ -36,7 +36,8 @@ struct LSQR{
 //  If  trans = true,  y should be altered without changing x.
 //  If  trans = false, x should be altered without changing y.
 //  The parameters leniw, lenrw, iw, rw may be used for workspace
-//  as described below.
+//  as described below. For the case of complex A, if trans = true,
+//  the conjugate transpose should be applied, not the transpose.
 //
 //  The rhs vector b is input via u, and subsequently overwritten.
 //
