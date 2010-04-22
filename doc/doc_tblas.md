@@ -363,9 +363,9 @@ This function corresponds to BLAS functions `zgemv`, `dgemv`, `cgemv`, and `sgem
 	
 	Exact checking may is not performed for this parameter, but it should always be specified as one of these three uppercase characters.
 =m=
-	Number of rows of `op(A)` (i.e. if `trans=T`, `m` is the number of columns of `A`).
+	Number of rows of `A` (not the number of rows of `op(A)`).
 =n=
-	Number of columns of `op(A)`.
+	Number of columns of `A`.
 =alpha=
 	The scale factor applied to `op(A) * x` (for a simple matrix-vector multiply, set this to 1).
 =a=
