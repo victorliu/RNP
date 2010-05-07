@@ -1,7 +1,7 @@
 #ifndef _RNP_TBLAS_EXT_H_
 #define _RNP_TBLAS_EXT_H_
 
-#define USE_MATH_DEFINES
+#define _USE_MATH_DEFINES
 #include <complex>
 
 namespace RNP{
@@ -124,10 +124,10 @@ T ConjugateDot(size_t n, const T *x, size_t incx, T *y, size_t incy){
 	return sum;
 }
 */
-float RNP_FORTRAN_NAME(snrm2,SNRM2)(const long int &n, const float *x, const long int &incx);
-double RNP_FORTRAN_NAME(dnrm2,DNRM2)(const long int &n, const double *x, const long int &incx);
-float RNP_FORTRAN_NAME(scnrm2,SCNRM2)(const long int &n, const std::complex<float> *x, const long int &incx);
-double RNP_FORTRAN_NAME(dznrm2,DZNRM2)(const long int &n, const std::complex<double> *x, const long int &incx);
+extern "C" float RNP_FORTRAN_NAME(snrm2,SNRM2)(const long int &n, const float *x, const long int &incx);
+extern "C" double RNP_FORTRAN_NAME(dnrm2,DNRM2)(const long int &n, const double *x, const long int &incx);
+extern "C" float RNP_FORTRAN_NAME(scnrm2,SCNRM2)(const long int &n, const std::complex<float> *x, const long int &incx);
+extern "C" double RNP_FORTRAN_NAME(dznrm2,DZNRM2)(const long int &n, const std::complex<double> *x, const long int &incx);
 template <>
 inline float Norm2<float>(size_t n, const float *x, size_t incx){
 	return RNP_FORTRAN_NAME(snrm2,SNRM2)(n, x, incx);
@@ -145,10 +145,10 @@ inline double Norm2<std::complex<double> >(size_t n, const std::complex<double> 
 	return RNP_FORTRAN_NAME(dznrm2,DZNRM2)(n, x, incx);
 }
 
-float RNP_FORTRAN_NAME(sasum,SASUM)(const long int &n, const float *x, const long int &incx);
-double RNP_FORTRAN_NAME(dasum,DASUM)(const long int &n, const double *x, const long int &incx);
-float RNP_FORTRAN_NAME(scasum,SCASUM)(const long int &n, const std::complex<float> *x, const long int &incx);
-double RNP_FORTRAN_NAME(dzasum,DZASUM)(const long int &n, const std::complex<double> *x, const long int &incx);
+extern "C" float RNP_FORTRAN_NAME(sasum,SASUM)(const long int &n, const float *x, const long int &incx);
+extern "C" double RNP_FORTRAN_NAME(dasum,DASUM)(const long int &n, const double *x, const long int &incx);
+extern "C" float RNP_FORTRAN_NAME(scasum,SCASUM)(const long int &n, const std::complex<float> *x, const long int &incx);
+extern "C" double RNP_FORTRAN_NAME(dzasum,DZASUM)(const long int &n, const std::complex<double> *x, const long int &incx);
 template <>
 inline float Asum<float>(size_t n, const float *x, size_t incx){
 	return RNP_FORTRAN_NAME(sasum,SASUM)(n, x, incx);
