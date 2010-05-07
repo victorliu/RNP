@@ -1,10 +1,10 @@
+#define RNP_TBLAS_USE_RANDOM
+#include "TBLAS.h" // includes cmath with the proper _USE_MATH_DEFINES
+#include "TLASupport.h"
 #include "IRA.h"
-#include <cmath>
 #include <limits>
 #include <algorithm>
-#define RNP_TBLAS_USE_RANDOM
-#include "TBLAS.h"
-#include "TLASupport.h"
+#include <cmath>
 #include "Eigensystems.h"
 
 bool RNP::IRA::LargestMagnitude (const std::complex<double> &a, const std::complex<double> &b, void *data){
