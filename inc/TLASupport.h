@@ -1498,6 +1498,36 @@ struct LUSolve{
 	}
 };
 
+template <class T>
+void Determinant(size_t n, T *a, size_t lda, T *mant, typename RNP::TBLAS::_RealOrComplexChooser<T>::real_type *base, int *expo, size_t *pivots = NULL){
+	typedef typename RNP::TBLAS::_RealOrComplexChooser<T>::real_type real_type;
+	static const real_type b = 16.;
+	size_t *ipiv = pivots;
+	if(NULL == pivots){
+		ipiv = new size_t[n];
+	}
+	LUDecomposition(n,n, a, lda, ipiv);
+	*base = b;
+	*expo = 0;
+	*mant = T(1);
+	for(size_t i = 0; i < n; ++i){
+		*mant *= a[i+i*lda];
+		if(T(0) == *mant){ break; }
+		while(RNP::TBLAS::_RealOrComplexChooser<T>::_abs(*mant) < 1){
+			*mant *= b;
+			(*expo)++;
+		}
+		while(RNP::TBLAS::_RealOrComplexChooser<T>::_abs(*mant) >= b){
+			*mant /= b;
+			(*expo)--;
+		}
+		if(ipiv[i] != i){ *mant = -(*mant); }
+	}
+	if(NULL == pivots){
+		delete [] ipiv;
+	}
+}
+
 }; // namespace TLASupport
 }; // namespace RNP
 
