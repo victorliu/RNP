@@ -57,8 +57,8 @@ namespace IRA{
 		size_t n, Areg Aop, Bfunc Bop,
 		size_t n_wanted, size_t n_arnoldi,   // n_wanted+1 <= n_arnoldi <= n
 		SortFunc sorter,
-		std::complex<double> *w,             // eigenvalues (length n_wanted)
-		std::complex<double> *v, size_t ldv, // eigenvectors (size ldv-by-n_wanted), ldv >= n
+		std::complex<double> *w,             // eigenvalues (length n_wanted+1)
+		std::complex<double> *v, size_t ldv, // eigenvectors (size ldv-by-n_arnoldi), ldv >= n
 		Params *params = NULL,
 		Workspace *workspace = NULL,
 		void *Adata = NULL, void *Bdata = NULL, void *SortData = NULL);
@@ -78,8 +78,8 @@ namespace IRA{
 		size_t n, const std::complex<double> &shift, Ashifted Aop, Bfunc Bop,
 		size_t n_wanted, size_t n_arnoldi,   // n_wanted+1 <= n_arnoldi <= n
 		SortFunc sorter,
-		std::complex<double> *w,             // eigenvalues (length n_wanted)
-		std::complex<double> *v, size_t ldv, // eigenvectors (size ldv-by-n_wanted), ldv >= n
+		std::complex<double> *w,             // eigenvalues (length n_wanted+1)
+		std::complex<double> *v, size_t ldv, // eigenvectors (size ldv-by-n_arnoldi), ldv >= n
 		Params *params = NULL,
 		Workspace *workspace = NULL,
 		void *Adata = NULL, void *Bdata = NULL, void *SortData = NULL);
