@@ -207,7 +207,7 @@ int RNP::Eigensystem_jacobi(size_t n,
 		}
 	}
 	// This is a heuristic that seems to work well
-	size_t max_iter = (int)(2+2.8*log2((double)n));
+	size_t max_iter = (int)(2+4.04*log((double)n));
 	if(max_iter < 8){ max_iter = 8; }
 
 	double normL = std::numeric_limits<double>::max();
@@ -850,7 +850,7 @@ static inline int iparmq_(int ispec, size_t n, size_t ilo, size_t ihi){
 			ns = 10;
 		}
 		if (nh >= 150) {
-			ns = max((size_t)10, nh / int(log2((double)nh) + 0.5));
+			ns = max((size_t)10, nh / int(log((double)nh)/log(2.) + 0.5));
 		}
 		if (nh >= 590) {
 			ns = 64;
