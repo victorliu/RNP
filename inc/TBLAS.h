@@ -40,7 +40,7 @@ BLAS distribution, and is in the public domain.
 
 */
 
-#define USE_MATH_DEFINES
+#define _USE_MATH_DEFINES
 #include <complex>
 #include <cmath>
 
@@ -1729,47 +1729,47 @@ struct RandomVector{
 	template <class T>
 	RandomVector(size_t n, T *x, int iseed[4] = NULL){
 		using namespace std;
-		const size_t nr = _RealOrComplexRand<T>::numreals();
-		if(1 == nr){
-			_RealOrComplexRand<T>::randvec(n, x, iseed);
-			return;
+		static const size_t chunksize = 128;
+		for(size_t i = 0; i < n; i += chunksize){
+			size_t chunk = n-i; if(chunksize < chunk){ chunk = chunksize; }
+			_RealOrComplexRand<T>::randvec(chunk, &x[i], iseed);
+			if(1 == dist){
+			}else if(2 == dist){
+				for(size_t j = 0; j < chunk; ++j){
+					x[i+j] = 2*x[i+j]-1;
+				}
+			}
 		}
 	}
 	template <class T>
 	RandomVector(size_t n, std::complex<T> *x, int iseed[4] = NULL){
 		using namespace std;
 		typedef std::complex<T> value_type;
-		const size_t nr = _RealOrComplexRand<value_type>::numreals();
-		if(1 == nr){
-			_RealOrComplexRand<value_type>::randvec(n, x, iseed);
-			return;
-		}else if(2 == nr){
-			static const size_t chunksize = 64;
-			typedef typename _RealOrComplexRand<value_type>::real_type real_type;
-			real_type buf[2*chunksize];
-			for(size_t i = 0; i < n; i += chunksize){
-				size_t chunk = n-i; if(chunksize < chunk){ chunk = chunksize; }
-				_RealOrComplexRand<real_type>::randvec(2*chunk, buf, iseed);
-				if(1 == dist){
-					for(size_t j = 0; j < chunk; ++j){
-						x[i+j] = value_type(buf[2*j+0], buf[2*j+1]);
-					}
-				}else if(2 == dist){
-					for(size_t j = 0; j < chunk; ++j){
-						x[i+j] = value_type(2*buf[2*j+0]-1, 2*buf[2*j+1]-1);
-					}
-				}else if(3 == dist){
-					for(size_t j = 0; j < chunk; ++j){
-						x[i+j] = sqrt(-2*log(buf[2*j+0])) * exp(value_type(0,2*M_PI*buf[2*j+1]));
-					}
-				}else if(4 == dist){
-					for(size_t j = 0; j < chunk; ++j){
-						x[i+j] = sqrt(buf[2*j+0]) * exp(value_type(0,2*M_PI*buf[2*j+1]));
-					}
-				}else if(5 == dist){
-					for(size_t j = 0; j < chunk; ++j){
-						x[i+j] = exp(value_type(0,2*M_PI*buf[2*j+0]));
-					}
+		static const size_t chunksize = 64;
+		typedef typename _RealOrComplexRand<value_type>::real_type real_type;
+		real_type buf[2*chunksize];
+		for(size_t i = 0; i < n; i += chunksize){
+			size_t chunk = n-i; if(chunksize < chunk){ chunk = chunksize; }
+			_RealOrComplexRand<real_type>::randvec(2*chunk, buf, iseed);
+			if(1 == dist){
+				for(size_t j = 0; j < chunk; ++j){
+					x[i+j] = value_type(buf[2*j+0], buf[2*j+1]);
+				}
+			}else if(2 == dist){
+				for(size_t j = 0; j < chunk; ++j){
+					x[i+j] = value_type(2*buf[2*j+0]-1, 2*buf[2*j+1]-1);
+				}
+			}else if(3 == dist){
+				for(size_t j = 0; j < chunk; ++j){
+					x[i+j] = sqrt(-2*log(buf[2*j+0])) * exp(value_type(0,2*M_PI*buf[2*j+1]));
+				}
+			}else if(4 == dist){
+				for(size_t j = 0; j < chunk; ++j){
+					x[i+j] = sqrt(buf[2*j+0]) * exp(value_type(0,2*M_PI*buf[2*j+1]));
+				}
+			}else if(5 == dist){
+				for(size_t j = 0; j < chunk; ++j){
+					x[i+j] = exp(value_type(0,2*M_PI*buf[2*j+0]));
 				}
 			}
 		}
