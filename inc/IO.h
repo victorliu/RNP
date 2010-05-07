@@ -165,7 +165,7 @@ std::ostream& PrintMatrix(size_t m, size_t n, const T *a, size_t lda, std::ostre
 #elif defined(RNP_OUTPUT_MATLAB)
 			os << ";" << std::endl;
 #else
-			os << "\t";
+			os << "\n";
 #endif
 		}
 	}
