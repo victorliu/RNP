@@ -139,10 +139,12 @@ A reasonable choice if unsure is <code>2*n_wanted+1</code>.</dd>
 <dt>sorter</dt>
 <dd>The eigenvalue sort function used for selecting which part of the spectrum to compute.</dd>
 <dt>w</dt>
-<dd>Vector of length <code>n_wanted</code> to store the eigenvalues.</dd>
+<dd>Vector of length <code>n_wanted+1</code> to store the eigenvalues.
+Only the first <code>n_wanted</code> entries should be trusted.</dd>
 <dt>v</dt>
 <dd>Pointer to the first element of the matrix which will hold the eigenvectors.
-It must have at least <code>n</code> rows and <code>n_wanted</code> columns. The eigenvectors are stored in the columns in the same order as the eigenvalues.</dd>
+It must have at least <code>n</code> rows and <code>n_arnoldi</code> columns. The eigenvectors are stored in the columns in the same order as the eigenvalues.
+Only the first <code>n_wanted</code> vectors should be trusted.</dd>
 <dt>ldv</dt>
 <dd>Leading dimension of matrix <code>v</code> (typically <code>n</code> unless <code>v</code> is a submatrix of a larger matrix).</dd>
 <dt>params</dt>

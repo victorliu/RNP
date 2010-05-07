@@ -115,10 +115,12 @@ Returns the number of converged eigenpairs.
 =sorter=
 	The eigenvalue sort function used for selecting which part of the spectrum to compute.
 =w=
-	Vector of length `n_wanted` to store the eigenvalues.
+	Vector of length `n_wanted+1` to store the eigenvalues.
+	Only the first `n_wanted` entries should be trusted.
 =v=
 	Pointer to the first element of the matrix which will hold the eigenvectors.
-	It must have at least `n` rows and `n_wanted` columns. The eigenvectors are stored in the columns in the same order as the eigenvalues.
+	It must have at least `n` rows and `n_arnoldi` columns. The eigenvectors are stored in the columns in the same order as the eigenvalues.
+	Only the first `n_wanted` vectors should be trusted.
 =ldv=
 	Leading dimension of matrix `v` (typically `n` unless `v` is a submatrix of a larger matrix).
 =params=
