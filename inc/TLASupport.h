@@ -1532,7 +1532,7 @@ void Determinant(size_t n, T *a, size_t lda, T *mant, typename RNP::TBLAS::_Real
 template <char side, char inv>
 struct ApplyPermutations{
 	template <class T>
-	void ApplyPermutations(size_t m, size_t n, T *a, size_t lda, const size_t *pivots){
+	ApplyPermutations(size_t m, size_t n, T *a, size_t lda, const size_t *pivots){
 		if('L' == side){
 			for(size_t i = 0; i < m; ++i){
 				size_t ip;
