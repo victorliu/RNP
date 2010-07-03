@@ -1528,7 +1528,140 @@ void Determinant(size_t n, T *a, size_t lda, T *mant, typename RNP::TBLAS::_Real
 	}
 }
 
+// if inv is true, the permuations are applied in reverse order (applies the inverse permutation
+template <char side, char inv>
+struct ApplyPermutations{
+	template <class T>
+	void ApplyPermutations(size_t m, size_t n, T *a, size_t lda, const size_t *pivots){
+		if('L' == side){
+			for(size_t i = 0; i < m; ++i){
+				size_t ip;
+				if('N' == inv){
+					ip = pivots[i];
+				}else{
+					ip = pivots[m-1-i];
+				}
+				if(i == ip){ continue; }
+				RNP::TBLAS::Swap(n, &a[i+0*lda],lda, &a[ip+0*lda],lda);
+			}
+		}else{
+			for(size_t j = 0; j < n; ++j){
+				size_t jp;
+				if('N' == inv){
+					jp = pivots[j];
+				}else{
+					jp = pivots[m-1-j];
+				}
+				if(j == jp){ continue; }
+				RNP::TBLAS::Swap(m, &a[0+j*lda],1, &a[0+jp*lda],1);
+			}
+		}
+	}
+};
+
+
+/*
+template <class T>
+void Transpose(size_t m, size_t n, T *a, size_t lda, size_t lwork = 0, size_t *work = NULL){
+	size_t *move = work;
+	size_t stack_move = 0;
+	size_t nmove = lwork;
+	if(0 == lwork || NULL == work){
+		move = &stack_move;
+		nmove = 1;
+	}
+	nmove *= 8*sizeof(size_t);
+	
+	if(m < 2 || n < 2){ return; }
+	if(m == n){
+		for(size_t i = 0; i < n-1; ++i){
+			for(size_t j = i+1; j < n; ++j){
+				std::swap(a[i+j*lda], a[j+i*lda]);
+			}
+		}
+		return;
+	}
+	size_t ncount = 2;
+	size_t k = m*n-1;
+	for(size_t i = 0; i < nmove; ++i){
+		move[i] = 0;
+	}
+}*/
+
 }; // namespace TLASupport
 }; // namespace RNP
 
+
+
+/*
+      IF (M.LT.3 .OR. N.LT.3) GO TO 30
+C CALCULATE THE NUMBER OF FIXED POINTS, EUCLIDS ALGORITHM
+C FOR GCD(M-1,N-1).
+      IR2 = M - 1
+      IR1 = N - 1
+   20 IR0 = MOD(IR2,IR1)
+      IR2 = IR1
+      IR1 = IR0
+      IF (IR0.NE.0) GO TO 20
+      NCOUNT = NCOUNT + IR2 - 1
+C SET INITIAL VALUES FOR SEARCH
+   30 I = 1
+      IM = M
+C AT LEAST ONE LOOP MUST BE RE-ARRANGED
+      GO TO 80
+C SEARCH FOR LOOPS TO REARRANGE
+   40 MAX = K - I
+      I = I + 1
+      IF (I.GT.MAX) GO TO 160
+      IM = IM + M
+      IF (IM.GT.K) IM = IM - K
+      I2 = IM
+      IF (I.EQ.I2) GO TO 40
+      IF (I.GT.IWRK) GO TO 60
+      IF (MOVE(I).EQ.0) GO TO 80
+      GO TO 40
+   50 I2 = M*I1 - K*(I1/N)
+   60 IF (I2.LE.I .OR. I2.GE.MAX) GO TO 70
+      I1 = I2
+      GO TO 50
+   70 IF (I2.NE.I) GO TO 40
+C REARRANGE THE ELEMENTS OF A LOOP AND ITS COMPANION LOOP
+   80 I1 = I
+      KMI = K - I
+      B = A(I1+1)
+      I1C = KMI
+      C = A(I1C+1)
+   90 I2 = M*I1 - K*(I1/N)
+      I2C = K - I2
+      IF (I1.LE.IWRK) MOVE(I1) = 2
+      IF (I1C.LE.IWRK) MOVE(I1C) = 2
+      NCOUNT = NCOUNT + 2
+      IF (I2.EQ.I) GO TO 110
+      IF (I2.EQ.KMI) GO TO 100
+      A(I1+1) = A(I2+1)
+      A(I1C+1) = A(I2C+1)
+      I1 = I2
+      I1C = I2C
+      GO TO 90
+C FINAL STORE AND TEST FOR FINISHED
+  100 D = B
+      B = C
+      C = D
+  110 A(I1+1) = B
+      A(I1C+1) = C
+      IF (NCOUNT.LT.MN) GO TO 40
+C NORMAL RETURN
+  120 IOK = 0
+      RETURN
+
+      GO TO 120
+C ERROR RETURNS.
+  160 IOK = I
+  170 RETURN
+  180 IOK = -1
+      GO TO 170
+  190 IOK = -2
+      GO TO 170
+      END
+*/
 #endif // _RNP_TLASUPPORT_H_
