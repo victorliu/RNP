@@ -1515,11 +1515,11 @@ void Determinant(size_t n, T *a, size_t lda, T *mant, typename RNP::TBLAS::_Real
 		if(T(0) == *mant){ break; }
 		while(RNP::TBLAS::_RealOrComplexChooser<T>::_abs(*mant) < 1){
 			*mant *= b;
-			(*expo)++;
+			(*expo)--;
 		}
 		while(RNP::TBLAS::_RealOrComplexChooser<T>::_abs(*mant) >= b){
 			*mant /= b;
-			(*expo)--;
+			(*expo)++;
 		}
 		if(ipiv[i] != i){ *mant = -(*mant); }
 	}
