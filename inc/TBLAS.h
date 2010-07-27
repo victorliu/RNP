@@ -149,7 +149,7 @@ T Dot(size_t n, const T *x, size_t incx, const T *y, size_t incy){
 }
 
 template <class T>
-T ConjugateDot(size_t n, const T *x, size_t incx, T *y, size_t incy){
+T ConjugateDot(size_t n, const T *x, size_t incx, const T *y, size_t incy){
 	T sum(0);
 	while(n --> 0){
 		sum += _RealOrComplexChooser<T>::_conj(*x)*(*y);
