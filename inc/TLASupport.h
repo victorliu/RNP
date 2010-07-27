@@ -1013,7 +1013,7 @@ void QRFactorization(size_t m, size_t n, T *a, size_t lda, T *tau, T *work){
 	for(size_t i = 0; i < k; ++i){
 		// Generate elementary reflector H(i) to annihilate A(i+1:m,i)
 		size_t row = m-1; if(i+1 < row){ row = i+1; }
-		RNP::TLASupport::GenerateElementaryReflectorPositive(m-i, &a[i+i*lda], &a[row+i*lda], 1, &tau[i]);
+		RNP::TLASupport::GenerateElementaryReflector(m-i, &a[i+i*lda], &a[row+i*lda], 1, &tau[i]);
 		if(i < n-1){
 			// Apply H(i)' to A(i:m,i+1:n) from the left
 			std::complex<double> alpha = a[i+i*lda];
