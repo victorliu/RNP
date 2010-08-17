@@ -114,6 +114,12 @@ void Scale(size_t n, const S &scale, T *x, size_t incx){
 		x += incx;
 	}
 }
+template <class S, class T>
+void Scale(size_t m, size_t n, const S &scale, T *a, size_t lda){
+	for(size_t j = 0; j < n; ++j){
+		Scale(m, scale, &a[0+j*lda], 1);
+	}
+}
 
 template <class T>
 void Copy(size_t n, const T *src, size_t incsrc, T *dst, size_t incdst){
