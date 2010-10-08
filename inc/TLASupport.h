@@ -1197,8 +1197,88 @@ void ApplyPlaneRotation(size_t n, T *cx, size_t incx, T *cy, size_t incy, const 
 	}
 }
 
-
-
+/*
+template <class T> // zgehrd, dgehrd, cgehrd, sgehrd
+void BlockedHessenbergReduction(size_t n, size_t ilo, size_t ihi, T *a, size_t lda, T *tau, T *work_, size_t lwork = 0){
+	static const size_t nbmax   = 64;
+	static const size_t nbmin   = 2;
+	const size_t ldt = nbmax+1;
+	
+	size_t nb = 32;
+	if((size_t)-1 == lwork){
+		work_[0] = nb*n + ldt*nbmax;
+		return;
+	}
+	if(ihi <= ilo){ return; }
+	
+	T *work = work_;
+	if(NULL == work_ || lwork < n){
+		work = new T[n*nb];
+	}
+	
+	for(int i = 0; i < (int)ilo-1; ++i){ tau[i] = 0; }
+	for(int i = ihi; i < (int)n-1; ++i){ tau[i] = 0; 
+	const size_t nh = ihi-ilo+1;
+	
+	size_t lwork_ret = 0;
+	size_t nbxover = nbmax;
+	if(1 < nb && nb < nh){
+		nbxover = 128;
+		if(nh < nbxover){
+			lwork_ret = n*nb;
+			if(lwork < lwork_ret){
+				if(lwork >= n*nbmin){
+					nb = lwork/n;
+				}else{
+					nb = 1;
+				}
+			}
+		}
+	}
+	const size_t ldwork = n;
+	
+	if(nbmin <= nb && nb < nh){ // use blocked code
+		while((int)ilo < (int)ihi-(int)nbxover){
+			const size_t ib = (nb < ihi-i ? nb : ihi-i);
+			// Reduce columns i:i+ib-1 to Hessenberg form, returning the
+			// matrices V and T of the block reflector H = I - V*T*V'
+			// which performs the reduction, and also the matrix Y = A*V*T
+			//CALL ZLAHR2( IHI, I, IB, A( 1, I ), LDA, TAU( I ), T, LDT, WORK, LDWORK )
+			do{ // zlahr2
+				if(ihi <= 1){ break; }
+				for(size_t i = 0; i < nb; ++i){
+					if(i > 0){
+					}
+				}
+			}while(0);
+			// Apply the block reflector H to A(1:ihi,i+ib:ihi) from the
+			// right, computing  A := A - Y * V'. V(i+ib,ib-1) must be set
+			// to 1
+			T ei = a[ilo+ib + (ilo+ib-1)*lda];
+			a[ilo+ib + (ilo+ib-1)*lda] = T(1)
+			RNP::TBLAS::MultMM<'N','C'>(ihi, ihi-ilo-ib+1, ib, T(-1), work, ldwork, &a[ilo+ib + ilo*lda], lda, T(1), &a[0+(ilo+ib)*lda], lda )
+			a[ilo+ib + (ilo+ib-1)*lda] = ei;
+			// Apply the block reflector H to A(1:i,i+1:i+ib-1) from the right
+			RNP::TBLAS::MultTrM<'R', 'L', 'C', 'U'>(ilo, ib-1, T(1), &a[ilo+1+ilo*lda], lda, work, ldwork);
+			for(size_t j = 0; j <= ib-2; ++j){
+				RNP::TBLAS::Axpy( ilo, T(-1), &work[0+j*ldwork], 1, &a[0+(ilo+j)*lda], 1);
+			}
+			// Apply the block reflector H to A(i+1:ihi,i+ib:n) from the left
+			//ZLARFB( 'Left', 'Conjugate transpose', 'Forward',  'Columnwise',
+			//	IHI-ilo, N-ilo-IB+1, IB, A( ilo+1, ilo ), LDA, T, LDT,
+			//	A( ilo+1, ilo+IB ), LDA, WORK, LDWORK )
+			
+			ilo += nb;
+		}
+	}
+	UnblockedHessenbergReduction(n, i, ihi, a, lda, tau, work);
+	work[0] = lwork_ret;
+	
+	if(NULL == work_ || lwork < n){
+		delete [] work;
+	}
+}
+*/
 template <class T> // zgehrd, dgehrd, cgehrd, sgehrd
 void HessenbergReduction(size_t n, size_t ilo, size_t ihi, T *a, size_t lda, T *tau, T *work){
 	// ZGEHD2 reduces a complex general matrix A to upper Hessenberg form H
