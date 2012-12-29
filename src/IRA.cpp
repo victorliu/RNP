@@ -2310,15 +2310,6 @@ void znaupd_(arz_data *data, int *ido, char bmat, size_t n, RNP::IRA::SortFunc s
 	std::complex<double> *workd, std::complex<double> *workl, size_t lworkl,
 	double *rwork, int *info)
 {
-	extern void znaup2_(
-		arz_data *data, int *ido, char bmat, size_t n, const char *
-		which, size_t *nev, size_t *np, double tol, std::complex<double> *
-		resid, int mode, int ishift, size_t *mxiter,
-		std::complex<double> *v, size_t ldv, std::complex<double> *h__, size_t ldh,
-		std::complex<double> *ritz, std::complex<double> *bounds, std::complex<double> *q, size_t
-		ldq, std::complex<double> *workl, int *ipntr, std::complex<double> *workd,
-		double *rwork, int *info);
-
 	if (*ido == 0) {
 		// Error checking
 		int ierr = 0;

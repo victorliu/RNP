@@ -1,3 +1,4 @@
+#include <cstdlib>
 #include <cmath>
 #include <complex>
 #include <limits>
@@ -58,7 +59,7 @@ void makeid(size_t rows, size_t cols, std::complex<double> *A){
 }
 int main(){
 	srand(time(0));
-	size_t n = 10;
+	size_t n = 100;
 	std::complex<double> *A = new std::complex<double>[n*n];
 	std::complex<double> *Acopy = new std::complex<double>[n*n];
 	std::complex<double> *w = new std::complex<double>[n];

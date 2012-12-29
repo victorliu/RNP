@@ -1,3 +1,4 @@
+#include <cstdlib>
 #include "Sparse.h"
 #include "Random.h"
 #include "IterativeLinearSolvers.h"
@@ -12,11 +13,11 @@ typedef RNP::Sparse::TCCSMatrix<std::complex<double> > ccsmatrix;
 
 void Aop(const std::complex<double> *x, std::complex<double> *y, void *data){ 
 	const ccsmatrix *A = reinterpret_cast<ccsmatrix*>(data);
-	RNP::Sparse::MultMV(*A, x, y);
+	RNP::Sparse::MultMV<'N'>(*A, x, y);
 }
 void Bop(const std::complex<double> *x, std::complex<double> *y, void *data){ 
 	const ccsmatrix *B = reinterpret_cast<ccsmatrix*>(data);
-	RNP::Sparse::MultMV(*B, x, y);
+	RNP::Sparse::MultMV<'N'>(*B, x, y);
 }
 void Precond(std::complex<double> *x, void *data){
 	size_t *n = reinterpret_cast<size_t*>(data);

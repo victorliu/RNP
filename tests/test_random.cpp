@@ -1,5 +1,6 @@
 #include "Random.h"
 #include <iostream>
+#include <cstdlib>
 
 int main(){
 	std::cout << "All number should appear random in (0,1)" << std::endl;

@@ -1378,57 +1378,58 @@ void ztrexc_(int n, std::complex<double> *t, int ldt, std::complex<double> *q, i
     // =====================================================================
     // 
     // .. Local Scalars ..
-      int m1;
-      int m2;
-      int m3;
+	int m1;
+	int m2;
+	int m3;
 
-      const bool wantq = ( NULL != q );
-     
-      // 
-      // Quick return if possible
-      // 
-      if( n == 1  ||  ifst == ilst ) return;
-      // 
-      if( ifst < ilst ){
-      // 
-      // Move the IFST-th diagonal element forward down the diagonal.
-      // 
-         m1 = 0;
-         m2 = -1;
-         m3 = 1;
-      }else{
-      // 
-      // Move the IFST-th diagonal element backward up the diagonal.
-      // 
-         m1 = -1;
-         m2 = 0;
-         m3 = -1;
-      }
-      // 
-      for(int k = ifst + m1; ((m3 < 0) ? (k >= ilst + m2) : (k <= ilst + m2)); k += m3){
-      // 
-      // Interchange the k-th and (k+1)-th diagonal elements.
-      // 
-         std::complex<double> t11 = t[(k-1)+(k-1)*ldt];
-         std::complex<double> t22 = t[k+(( k+1 )-1)*ldt];
-         // 
-         // Determine the transformation to perform the interchange.
-         // 
-      double cs;
-      std::complex<double> sn, temp;
-         RNP::TLASupport::GeneratePlaneRotation( t[(k-1)+(( k+1 )-1)*ldt], t22-t11, &cs, &sn, &temp );
-         
-         // Apply transformation to the matrix T.
-         if( k+2 <= n ) RNP::TLASupport::ApplyPlaneRotation( n-k-1, &t[(k-1)+(( k+2 )-1)*ldt], ldt, &t[k+(( k+2 )-1)*ldt], ldt, cs, sn );
-         RNP::TLASupport::ApplyPlaneRotation( k-1, &t[0+(k-1)*ldt], 1, &t[0+(( k+1 )-1)*ldt], 1, cs, std::conj( sn ) );
-         // 
-         t[(k-1)+(k-1)*ldt] = t22;
-         t[k+(( k+1 )-1)*ldt] = t11;
-         // 
-         if( wantq ){ // Accumulate transformation in the matrix Q.
-            RNP::TLASupport::ApplyPlaneRotation( n, &q[0+(k-1)*ldq], 1, &q[0+(( k+1 )-1)*ldq], 1, cs, std::conj( sn ) );
-         }
-      }
+	const bool wantq = ( NULL != q );
+
+	// 
+	// Quick return if possible
+	// 
+	if( n == 1  ||  ifst == ilst ) return;
+	// 
+	if( ifst < ilst ){
+		// 
+		// Move the IFST-th diagonal element forward down the diagonal.
+		// 
+		m1 = 0;
+		m2 = -1;
+		m3 = 1;
+	}else{
+		// 
+		// Move the IFST-th diagonal element backward up the diagonal.
+		// 
+		m1 = -1;
+		m2 = 0;
+		m3 = -1;
+	}
+
+	for(int k = ifst + m1; ((m3 < 0) ? (k >= ilst + m2) : (k <= ilst + m2)); k += m3){
+		// 
+		// Interchange the k-th and (k+1)-th diagonal elements.
+		// 
+		std::complex<double> t11 = t[k+k*ldt];
+		std::complex<double> t22 = t[(k+1)+(k+1)*ldt];
+		
+		// 
+		// Determine the transformation to perform the interchange.
+		// 
+		double cs;
+		std::complex<double> sn, temp;
+		RNP::TLASupport::GeneratePlaneRotation( t[k+(k+1)*ldt], t22-t11, &cs, &sn, &temp );
+
+		// Apply transformation to the matrix T.
+		if( k+2 < n ) RNP::TLASupport::ApplyPlaneRotation( n-k-2, &t[k+(k+2)*ldt], ldt, &t[(k+1)+(k+2)*ldt], ldt, cs, sn);
+		RNP::TLASupport::ApplyPlaneRotation(k, &t[0+k*ldt], 1, &t[0+(k+1)*ldt], 1, cs, std::conj(sn));
+
+		t[k+k*ldt] = t22;
+		t[(k+1)+(k+1)*ldt] = t11;
+		// 
+		if( wantq ){ // Accumulate transformation in the matrix Q.
+			RNP::TLASupport::ApplyPlaneRotation( n, &q[0+k*ldq], 1, &q[0+(k+1)*ldq], 1, cs, std::conj(sn));
+		}
+	}
 }
 
 static void zlaqr3_(bool wantt, bool wantz, size_t n, size_t ktop, size_t kbot, size_t nw, std::complex<double> *_h__, size_t ldh, size_t iloz, size_t ihiz, std::complex<double> *_z__, size_t ldz, size_t *ns, size_t *nd, std::complex<double> *_sh, std::complex<double> *_v, size_t ldv, size_t nh, std::complex<double> *_t, size_t ldt, size_t nv, std::complex<double> *_wv, size_t ldwv, std::complex<double> *_work, bool is_three)
@@ -1675,7 +1676,7 @@ static void zlaqr3_(bool wantt, bool wantz, size_t n, size_t ktop, size_t kbot, 
 			// One undeflatable eigenvalue.  Move it up out of the
 			//    way.   (ZTREXC can not fail in this case.)
 			ifst = *ns;
-			ztrexc_(jw, _t, ldt, _v, ldv, ifst, ilst);
+			ztrexc_(jw, _t, ldt, _v, ldv, ifst-1, ilst-1);
 			++ilst;
 		}
 	}
@@ -1697,7 +1698,7 @@ static void zlaqr3_(bool wantt, bool wantz, size_t n, size_t ktop, size_t kbot, 
 			}
 			ilst = i;
 			if (ifst != ilst) {
-				ztrexc_(jw, _t, ldt, _v, ldv, ifst+1, ilst+1);
+				ztrexc_(jw, _t, ldt, _v, ldv, ifst, ilst);
 			}
 		}
 	}

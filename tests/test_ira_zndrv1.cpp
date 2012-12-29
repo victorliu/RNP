@@ -177,7 +177,7 @@ int main(int argc, char *argv[]){
 			// for the NCONV accurately computed eigenvalues and eigenvectors.
 			// (iparam(5) indicates how many are accurate to the requested tolerance)
 
-			av_(nx, &v[0+j*ldv], ax, (void*)&nx);
+			av_(n, &v[0+j*ldv], ax, (void*)&nx);
 			RNP::TBLAS::Axpy(n, -d[j], &v[0+j*ldv], 1, ax, 1);
 			rd[j+0*maxncv] = d[j].real();
 			rd[j+1*maxncv] = d[j].imag();

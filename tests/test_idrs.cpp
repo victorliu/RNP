@@ -1,3 +1,4 @@
+#include <cstdlib>
 #include "Sparse.h"
 #include "Random.h"
 #include "IterativeLinearSolvers.h"
@@ -44,7 +45,7 @@ int main(){
 	
 	//print(n, x); std::cout << std::endl;
 	
-	RNP::Sparse::MultMV(A, x, r);
+	RNP::Sparse::MultMV<'N'>(A, x, r);
 	for(size_t i = 0; i < n; ++i){
 		r[i] -= b[i];
 	}
